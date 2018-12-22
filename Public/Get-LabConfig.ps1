@@ -50,9 +50,10 @@ Function Get-LabConfig {
     $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["Server2016ISO"] = Get-ChildItem -Path $base.PathSvr2K16 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["Windows10ISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["NET35CAB"] = Get-ChildItem -Path $base.PathDotNET35 -Filter "*.CAB" | Select-Object -First 1 -ExpandProperty FullName
-    $base["Svr2016VHDX"] = "$($PathRefImage)\$($ServerRef.RefVHDXName)"
-    $base["Win10VHDX"] = "$($RefPath)\$($WorkstationRef.RefVHDXName)"
+    $base["Packages"] = Get-ChildItem -Path $base.Packages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
+    $base["Drivers"] = Get-ChildItem -Path $base.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
+    $base["Svr2016VHDX"] = "$($base.PathRefImage)\$($SvrRef.RefVHDXName)"
+    $base["Win10VHDX"] = "$($base.PathRefImage)\$($WSRef.RefVHDXName)"
 
     $base["LocalAdminName"] = "Administrator"
     $base["LocalAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force

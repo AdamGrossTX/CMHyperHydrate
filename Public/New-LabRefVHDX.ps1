@@ -143,42 +143,96 @@ Function New-LabRefVHDX {
         [switch]
         $ShowUI
     )
+
+
+
+    function Get-ParameterValues {
+        <#
+            .Synopsis
+                Get the actual values of parameters which have manually set (non-null) default values or values passed in the call
+            .Description
+                Unlike $PSBoundParameters, the hashtable returned from Get-ParameterValues includes non-empty default parameter values.
+                NOTE: Default values that are the same as the implied values are ignored (e.g.: empty strings, zero numbers, nulls).
+            .Link
+                https://gist.github.com/Jaykul/72f30dce2cca55e8cd73e97670db0b09/
+            .Link
+                https://gist.github.com/elovelan/d697882b99d24f1b637c7e7a97f721f2/
+            .Example
+                function Test-Parameters {
+                    [CmdletBinding()]
+                    param(
+                        $Name = $Env:UserName,
+                        $Age
+                    )
+                    $Parameters = Get-ParameterValues
+                    # This WILL ALWAYS have a value... 
+                    Write-Host $Parameters["Name"]
+                    # But this will NOT always have a value... 
+                    Write-Host $PSBoundParameters["Name"]
+                }
+        #>
+        [CmdletBinding()]
+        param()
+        # The $MyInvocation for the caller
+        $Invocation = Get-Variable -Scope 1 -Name MyInvocation -ValueOnly
+        # The $PSBoundParameters for the caller
+        $BoundParameters = Get-Variable -Scope 1 -Name PSBoundParameters -ValueOnly
+        
+        $ParameterValues = @{}
+        foreach($parameter in $Invocation.MyCommand.Parameters.GetEnumerator()) {
+            # gm -in $parameter.Value | Out-Default
+            try {
+                $key = $parameter.Key
+                if($null -ne ($value = Get-Variable -Name $key -ValueOnly -ErrorAction Ignore)) {
+                    if($value -ne ($null -as $parameter.Value.ParameterType)) {
+                        $ParameterValues[$key] = $value
+                    }
+                }
+                #if($BoundParameters.ContainsKey($key)) {
+                #    $ParameterValues[$key] = $BoundParameters[$key]
+                #}
+            } finally {}
+        }
+        $ParameterValues
+      }
+
+
     If($UseConfig) {
         Switch($RefConfig) {
             "Server" {
                 switch($Script:SvrRef.RefSrcType)
                 {
-                    "ISO" {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Server2016ISO)"; break;}
-                    "WIM" {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Server2016WIM)";break;}
-                    default {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Server2016ISO)";break;}
+                    "ISO" {$SourcePath = $Script:base.Server2016ISO; break;}
+                    "WIM" {$SourcePath = $Script:base.Server2016WIM;break;}
+                    default {$SourcePath = $Script:base.Server2016ISO;break;}
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:SvrRef.RefHVDSize -as [UInt64];
-                $Feature = $Script:SvrRef.RefFeature;
-                $Driver = $Script:SvrRef.RefDriver;
-                $Package = $Script:SvrRef.RefPackage;
+                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefFeature))) {$Feature = $Script:SvrRef.RefFeature;}
+                If(!([string]::IsNullOrEmpty($Script:base.PathDrivers))) {$Driver = $Script:base.PathDrivers;}
+                If(!([string]::IsNullOrEmpty($Script:base.PathPackages))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
-                $VHDPath = "$($script:PathRefImage)\$($Script:SvrRef.RefVHDXName)"
-                $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)";
+                $VHDPath = "$($script:Base.Svr2016VHDX)"
+                $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
             "Worksation" {
                 switch($Script:WSRef.RefSrcType)
                 {
-                    "ISO" {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Windows10ISO)"; break;}
-                    "WIM" {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Windows10WIM)";break;}
-                    default {$SourcePath = "$($Script:base.PathRefImage)\$($Script:base.Windows10ISO)";break;}
+                    "ISO" {$SourcePath = $Script:base.Windows10ISO; break;}
+                    "WIM" {$SourcePath = $Script:base.Windows10WIM;break;}
+                    default {$SourcePath = $Script:base.Windows10ISO;break;}
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:WSRef.RefHVDSize -as [UInt64];
-                $Feature = $Script:WSRef.RefFeature;
-                $Driver = $Script:WSRef.RefDriver;
-                $Package = $Script:WSRef.RefPackage;
+                If(!([string]::IsNullOrEmpty($Script:WSRef.RefFeature))) {$Feature = $Script:WSRef.RefFeature;}
+                If(!([string]::IsNullOrEmpty($Script:base.PathDrivers))) {$Driver = $Script:base.PathDrivers;}
+                If(!([string]::IsNullOrEmpty($Script:base.PathPackages))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
-                $VHDPath = "$($script:PathRefImage)\$($Script:WSRef.RefVHDXName)";
-                $UnattendPath;
+                $VHDPath = "$($script:Base.Win10VHDX)";
+                $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
             default {$null; break;}
@@ -187,7 +241,6 @@ Function New-LabRefVHDX {
         $CacheSource = $false
         $WorkingDirectory = $pwd
         $TempDirectory = $env:Temp
-        $MergeFolderPath = ""
         $BCDinVHD = "VirtualMachine"
         $BCDBoot = "bcdboot.exe"
         $EnableDebugger = "None"
@@ -212,12 +265,26 @@ Function New-LabRefVHDX {
         #end region
 
 
-        try {
-            Convert-WindowsImage @PSBoundParameters
-        }
-        Catch {
+        #try {
+            $SourcePath
+
+            $Params = Get-ParameterValues
+            
+            $Params
+
+            #$PSBoundParameters
+            $Params.Remove('UseConfig')
+            $Params.Remove('RefConfig')
+
+            $Params
+
+            $SourcePath
+
+            Convert-WindowsImage @Params
+        #}
+        #Catch {
             #Throw $Error[0]
-        }
+        #}
         
 
         

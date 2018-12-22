@@ -9,7 +9,8 @@
     "PathADKWinPE"      : "\\Media\\ADKWinPE",
     "PathConfigMgrTP"   : "\\Media\\ConfigMgrTP",
     "PathConfigMgr"     : "\\Media\\ConfigMgr",
-    "PathDotNET35"      : "\\Media\\DotNET35",
+    "PathPackages"      : "\\Media\\Packages",
+    "PathDrivers"       : "\\Media\\Drivers",
     "PathRefImage"      : "\\ReferenceImage",
     "VMDataPath"        : "\\Data",
     "ServerRef"         : [
@@ -21,7 +22,7 @@
             "RefSrcType"    : "ISO",
             "RefHVDSize"    : "128gb",
             "RefHFeature"   : "NetFx3",
-            "RefPackage"    : "$NET35CABPath",
+            "RefPackage"    : "",
             "RefDriver"     : ""
             
         }

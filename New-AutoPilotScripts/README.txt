@@ -1,0 +1,1 @@
+Keep the ConfigFiles folder in the same directory with the same files there if you are not going to change the variables.
