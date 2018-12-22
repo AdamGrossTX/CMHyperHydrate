@@ -3,15 +3,15 @@ Function New-LabVM {
 param(
     [Parameter(Mandatory)]
     [string]
-    $ENVName,
+    $ENVName = $Script:Env.Env,
 
     [Parameter(Mandatory)]
     [string]
-    $VMName,
+    $VMName = $Script:VMConfig.VMName,
 
     [Parameter(Mandatory)]
     [string]
-    $ReferenceVHDX,
+    $ReferenceVHDX = $Script.VH,
 
     [Parameter(Mandatory)]
     [string]

@@ -3,7 +3,7 @@
     "LabPath"           : "C:\\Lab",
     "SourcePath"        : "C:\\Lab",
     "PathSQL"           : "\\Media\\ISO\\SQL",
-    "PathSvr2K16"       : "\\Media\\ISO\\Server2016",
+    "PathSvr"           : "\\Media\\ISO\\Server",
     "PathWin10"         : "\\Media\\ISO\\Windows10",
     "PathADK"           : "\\Media\\ADK",
     "PathADKWinPE"      : "\\Media\\ADKWinPE",
@@ -24,7 +24,6 @@
             "RefHFeature"   : "NetFx3",
             "RefPackage"    : "",
             "RefDriver"     : ""
-            
         }
     ],
     "WorkstationRef"        : [
@@ -36,7 +35,7 @@
             "RefSrcType"    : "ISO",
             "RefHVDSize"    : "50gb",
             "RefHFeature"   : "NetFx3",
-            "RefPackage"    : "$NET35CABPath",
+            "RefPackage"    : "",
             "RefDriver"     : ""
         }
     ],
@@ -50,6 +49,7 @@
         },
         {
             "Env"           : "CMTP",
+            "EnvSwitchName" : "CMTP",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "asd.lab",
             "EnvIPSubnet"   : "172.16.10.",
@@ -60,7 +60,7 @@
             "UILanguage"    : "en-us",
             "UILanguageFB"  : "en-us",
             "UserLocale"    : "en-us",
-            "VMList": [
+            "ServerVMList": [
                 {
                     "VMID"          : "VM1",
                     "VMName"        : "CM1",
@@ -72,14 +72,16 @@
                     "CMPreReqPreDL" : "1",
                     "CMPreReqPath"  : "1",
                     "EnableSnapShot": "0"
-                },
+                }
+            ],
+            "WorkstationVMList": [                
                 {
-                    "ID"            : "VM2",
-                    "VMName"        : "CM2",
-                    "OS"            : "Workstation",
-                    "Roles"         : "",
-                    "IPLastOctet"   : "100",
-                    "DomainJoin"    : "False",
+                    "VMID"            : "VM2",
+                    "VMName"          : "Win01",
+                    "VMOS"            : "Workstation",
+                    "VMRoles"         : "",
+                    "VMIPLastOctet"   : "100",
+                    "VMDomainJoin"    : "False",
                     "EnableSnapShot": "0"
                 }
             ]

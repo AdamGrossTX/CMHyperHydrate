@@ -4,7 +4,7 @@ Param
 (
     [Parameter()]
     [String]
-    $SwitchName
+    $SwitchName = $Script:Env.EnvSwitchName
 )
 #$TNetwork = Invoke-Pester -TestName "vSwitch" -PassThru 
 #if (($TNetwork.TestResult | Where-Object {$_.name -eq 'Internet VSwitch should exist'}).result -eq 'Failed') {

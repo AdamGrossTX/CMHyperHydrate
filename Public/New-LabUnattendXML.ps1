@@ -1,62 +1,46 @@
 Function New-LabUnattendXML {
-[cmdletbinding(DefaultParameterSetName="Config")]
+[cmdletbinding()]
 Param (
-    [Parameter(ParameterSetName="Config")]
-    [ValidateNotNullOrEmpty()]
-    [switch]$UseConfig,
-
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $AdministratorPassword = "P@ssw0rd",
+    $AdministratorPassword = $Script:Env.EnvAdminPW,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $TimeZone = "Central Standard Time",
+    $TimeZone = $Script:Env.EnvTimeZone,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $InputLocale = "0409:00000409",
+    $InputLocale = $Script:Env.InputLocale,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $SystemLocale = "en-us",
+    $SystemLocale = $Script:Env.SystemLocale,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UILanguage = "en-us",
+    $UILanguage = $Script:Env.UILanguage,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UILanguageFallback = "en-us",
+    $UILanguageFallback = $Script:Env.UILanguageFB,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UserLocale = "en-us",
+    $UserLocale = $Script:Env.UserLocale,
     
-    [Parameter(ParameterSetName="CustomValues")]
+    [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $OutputFile
-)
-
-If($UseEnvConfig) {
-    $AdministratorPassword = $Script:Env.EnvAdminPW
-    $TimeZone = $Script:Env.EnvTimeZone
-    $InputLocale = $Script:Env.InputLocale
-    $SystemLocale = $Script:Env.SystemLocale
-    $UILanguage = $Script:Env.UILanguage
-    $UILanguageFallback = $Script:Env.UILanguageFB
-    $UserLocale = $Script:Env.UserLocale
     $OutputFile = "$($Script:Base.LabPath)\$($Script:Base.ENVToBuild)\Unattend.XML"
-}
-
+)
 $unattendTemplate = [xml]@" 
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">

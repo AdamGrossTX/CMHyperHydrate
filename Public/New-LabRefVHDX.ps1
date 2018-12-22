@@ -1,141 +1,136 @@
-
 Function New-LabRefVHDX {
-    [cmdletbinding(DefaultParameterSetName="Config")]
+    [cmdletbinding()]
     param(
-        [Parameter(ParameterSetName="Config")]
-        [ValidateNotNullOrEmpty()]
-        [switch]$UseConfig,
-
-        [Parameter(ParameterSetName="Config")]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Server","Workstation")]
-        [string]$RefConfig,
+        [string]$BuildType="Server",
 
-        [Parameter(ParameterSetName="SRC", Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter()]
         [Alias("WIM")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $SourcePath,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [switch]
         $CacheSource = $false,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("SKU")]
         [string[]]
         [ValidateNotNullOrEmpty()]
         $Edition,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("WorkDir")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $_ })]
         $WorkingDirectory = $pwd,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("TempDir")]
         [string]
         [ValidateNotNullOrEmpty()]
         $TempDirectory = $env:Temp,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("VHD")]
         [string]
         [ValidateNotNullOrEmpty()]
         $VHDPath,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("Size")]
         [UInt64]
         [ValidateNotNullOrEmpty()]
         [ValidateRange(512MB, 64TB)]
         $SizeBytes = 25GB,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("Format")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("VHD", "VHDX", "AUTO")]
         $VHDFormat = "VHDX",
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("MergeFolder")]
         [string]
         [ValidateNotNullOrEmpty()]
         $MergeFolderPath = "",
 
-        [Parameter(ParameterSetName="SRC", Mandatory=$true)]
+        [Parameter()]
         [Alias("Layout")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("BIOS", "UEFI", "WindowsToGo")]
-        $DiskLayout,
+        $DiskLayout="UEFI",
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("NativeBoot", "VirtualMachine")]
         $BCDinVHD = "VirtualMachine",
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Parameter(ParameterSetName="UI")]
         [string]
         $BCDBoot = "bcdboot.exe",
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Parameter(ParameterSetName="UI")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("None", "Serial", "1394", "USB", "Local", "Network")]
         $EnableDebugger = "None",
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [string[]]
         [ValidateNotNullOrEmpty()]
         $Feature,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [string[]]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $Driver,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [string[]]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $Package,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [switch]
         $ExpandOnNativeBoot = $true,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [switch]
         $RemoteDesktopEnable = $false,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Alias("Unattend")]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $UnattendPath,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [Parameter(ParameterSetName="UI")]
         [switch]
         $Passthru,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [string]
         [ValidateNotNullOrEmpty()]
         [ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $DismPath,
 
-        [Parameter(ParameterSetName="SRC")]
+        [Parameter()]
         [switch]
         $ApplyEA = $false,
 
@@ -196,42 +191,40 @@ Function New-LabRefVHDX {
         $ParameterValues
       }
 
-
-    If($UseConfig) {
-        Switch($RefConfig) {
+        Switch($BuildType) {
             "Server" {
                 switch($Script:SvrRef.RefSrcType)
                 {
-                    "ISO" {$SourcePath = $Script:base.Server2016ISO; break;}
-                    "WIM" {$SourcePath = $Script:base.Server2016WIM;break;}
-                    default {$SourcePath = $Script:base.Server2016ISO;break;}
+                    "ISO" {$SourcePath = $Script:base.SvrISO; break;}
+                    "WIM" {$SourcePath = $Script:base.SvrWim;break;}
+                    default {$SourcePath = $Script:base.SvrISO;break;}
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:SvrRef.RefHVDSize -as [UInt64];
                 If(!([string]::IsNullOrEmpty($Script:SvrRef.RefFeature))) {$Feature = $Script:SvrRef.RefFeature;}
-                If(!([string]::IsNullOrEmpty($Script:base.PathDrivers))) {$Driver = $Script:base.PathDrivers;}
-                If(!([string]::IsNullOrEmpty($Script:base.PathPackages))) {$Package = $Script:base.PathPackages;}
+                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
+                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefPackage))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
-                $VHDPath = "$($script:Base.Svr2016VHDX)"
+                $VHDPath = "$($script:Base.SvrVHDX)"
                 $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
             "Worksation" {
                 switch($Script:WSRef.RefSrcType)
                 {
-                    "ISO" {$SourcePath = $Script:base.Windows10ISO; break;}
-                    "WIM" {$SourcePath = $Script:base.Windows10WIM;break;}
-                    default {$SourcePath = $Script:base.Windows10ISO;break;}
+                    "ISO" {$SourcePath = $Script:base.WinISO; break;}
+                    "WIM" {$SourcePath = $Script:base.WinWIM;break;}
+                    default {$SourcePath = $Script:base.WinISO;break;}
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:WSRef.RefHVDSize -as [UInt64];
-                If(!([string]::IsNullOrEmpty($Script:WSRef.RefFeature))) {$Feature = $Script:WSRef.RefFeature;}
-                If(!([string]::IsNullOrEmpty($Script:base.PathDrivers))) {$Driver = $Script:base.PathDrivers;}
-                If(!([string]::IsNullOrEmpty($Script:base.PathPackages))) {$Package = $Script:base.PathPackages;}
+                If(!([string]::IsNullOrEmpty($Script:WksRef.RefFeature))) {$Feature = $Script:WSRef.RefFeature;}
+                If(!([string]::IsNullOrEmpty($Script:WksRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
+                If(!([string]::IsNullOrEmpty($Script:WksRef.RefPackage))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
-                $VHDPath = "$($script:Base.Win10VHDX)";
+                $VHDPath = "$($script:Base.WksVHDX)";
                 $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
@@ -239,7 +232,6 @@ Function New-LabRefVHDX {
         }
         
         $CacheSource = $false
-        $WorkingDirectory = $pwd
         $TempDirectory = $env:Temp
         $BCDinVHD = "VirtualMachine"
         $BCDBoot = "bcdboot.exe"
@@ -250,7 +242,7 @@ Function New-LabRefVHDX {
         $DismPath
         $ApplyEA = $false
         $ShowUI
-    }
+    
 
     
     if(!(Test-Path -Path $VHDPath)) {
@@ -264,29 +256,9 @@ Function New-LabRefVHDX {
         Import-module -name 'Convert-Windowsimage'
         #end region
 
-
-        #try {
-            $SourcePath
-
-            $Params = Get-ParameterValues
-            
-            $Params
-
-            #$PSBoundParameters
-            $Params.Remove('UseConfig')
-            $Params.Remove('RefConfig')
-
-            $Params
-
-            $SourcePath
-
-            Convert-WindowsImage @Params
-        #}
-        #Catch {
-            #Throw $Error[0]
-        #}
-        
-
+        $Params = Get-ParameterValues
+        $Params.Remove("BuildType")
+        Convert-WindowsImage @Params
         
     }
 

@@ -3,15 +3,19 @@ Import-Module .\CMHyperHydrate.psm1 -Force
 $ConfigFileName = ".\NewEnv.json"
 
 Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
-#New-LabEnv -SwitchName $Base.ENVToBuild
-#New-LabUnattendXML -UseEnvConfig
-New-LabRefVHDX -UseConfig -RefConfig "Server"
+#New-LabEnv
+#New-LabUnattendXML
+#New-LabRefVHDX -BuildType "Server"
+New-LabVM
 
 #ForEach ($VM in $VMList)
 #{
-#    $VMConfig = @{}
-#    ($VM).psobject.properties | ForEach-Object {$VMConfig[$_.Name] = $_.Value}
-#}
+    #$Global:VMConfig = @{}
+    #($VMList[0]).psobject.properties | ForEach-Object {$VMConfig[$_.Name] = $_.Value}
+
+    #Add-LabRoles
+
+    #}
 
 #}
 

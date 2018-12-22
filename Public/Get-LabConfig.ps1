@@ -13,18 +13,27 @@ Function Get-LabConfig {
         $CreateFolders
     )
 
-
-
     $Config = Get-Content $ConfigFileName -Raw | ConvertFrom-Json
     $ENVConfig = $Config.ENVConfig | Where-Object {$_.ENV -eq $Config.ENVToBuild}
     $SvrRefConfig = $Config.ServerRef
-    $WSRefConfig = $Config.WorkstationRef
-    $Script:VMList = $ENVConfig.VMList
-
+    $WksRefConfig = $Config.WorkstationRef
+    $Global:SvrVMs = $ENVConfig.ServerVMList
+    $Global:WksVMs = $ENVConfig.WorkstationVMList
+ 
     $Script:base = @{}
     $Script:env = @{}
     ($Config | Select-Object -Property * -ExcludeProperty "ENVConfig", "VMList", "ServerRef", "WorkstationRef").psobject.properties | ForEach-Object {$Base[$_.Name] = $_.Value}
-    ($ENVConfig  | Select-Object -Property * -ExcludeProperty  "VMList").psobject.properties | ForEach-Object {$env[$_.Name] = $_.Value}
+    ($ENVConfig  | Select-Object -Property * -ExcludeProperty  "ServerVMList", "WorkstationVMList").psobject.properties | ForEach-Object {$env[$_.Name] = $_.Value}
+
+    $Script:SvrRef = @{}
+    ForEach ($Img in $SvrRefConfig) {
+        ($Img).psobject.properties | ForEach-Object {$SvrRef[$_.Name] = $_.Value}
+    }
+
+    $Script:WksRef = @{}
+    ForEach ($Img in $WksRefConfig) {
+        ($Img).psobject.properties | ForEach-Object {$WksRef[$_.Name] = $_.Value}
+    }
 
     ForEach ($key in @($base.keys)) {
         If ($key -like "Path*")
@@ -36,24 +45,14 @@ Function Get-LabConfig {
         }
     }
 
-    $Script:SvrRef = @{}
-    ForEach ($Img in $SvrRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$SvrRef[$_.Name] = $_.Value}
-    }
-
-    $Script:WSRef = @{}
-    ForEach ($Img in $WSRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$WSRef[$_.Name] = $_.Value}
-    }
-
     $base["VMPath"] = "$($base.PathLab)\$($base.ENVToBuild)"
     $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["Server2016ISO"] = Get-ChildItem -Path $base.PathSvr2K16 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["Windows10ISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $base["SvrISO"] = Get-ChildItem -Path $base.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $base["WinISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["Packages"] = Get-ChildItem -Path $base.Packages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
     $base["Drivers"] = Get-ChildItem -Path $base.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
-    $base["Svr2016VHDX"] = "$($base.PathRefImage)\$($SvrRef.RefVHDXName)"
-    $base["Win10VHDX"] = "$($base.PathRefImage)\$($WSRef.RefVHDXName)"
+    $base["SvrVHDX"] = "$($base.PathRefImage)\$($SvrRef.RefVHDXName)"
+    $base["WksVHDX"] = "$($base.PathRefImage)\$($WksRef.RefVHDXName)"
 
     $base["LocalAdminName"] = "Administrator"
     $base["LocalAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
