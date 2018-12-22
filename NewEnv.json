@@ -1,0 +1,88 @@
+{
+    "ENVToBuild"        : "CMTP",
+    "LabPath"           : "C:\\Lab",
+    "SourcePath"        : "C:\\Lab",
+    "PathSQL"           : "\\Media\\ISO\\SQL",
+    "PathSvr2K16"       : "\\Media\\ISO\\Server2016",
+    "PathWin10"         : "\\Media\\ISO\\Windows10",
+    "PathADK"           : "\\Media\\ADK",
+    "PathADKWinPE"      : "\\Media\\ADKWinPE",
+    "PathConfigMgrTP"   : "\\Media\\ConfigMgrTP",
+    "PathConfigMgr"     : "\\Media\\ConfigMgr",
+    "PathDotNET35"      : "\\Media\\DotNET35",
+    "PathRefImage"      : "\\ReferenceImage",
+    "VMDataPath"        : "\\Data",
+    "ServerRef"         : [
+        {
+            "RefID"         : "2016",
+            "RefName"       : "Windows Server 2016",
+            "RefVHDXName"   : "Server2016Ref.vhdx",
+            "RefIndex"      : "2",
+            "RefSrcType"    : "ISO",
+            "RefHVDSize"    : "128gb",
+            "RefHFeature"   : "NetFx3",
+            "RefPackage"    : "$NET35CABPath",
+            "RefDriver"     : ""
+            
+        }
+    ],
+    "WorkstationRef"        : [
+        {
+            "RefID"         : "1809",
+            "RefName"       : "Windows 10 1809",
+            "RefVHDXName"   : "Windows1809Ref.vhdx",
+            "RefIndex"      : "3",
+            "RefSrcType"    : "ISO",
+            "RefHVDSize"    : "50gb",
+            "RefHFeature"   : "NetFx3",
+            "RefPackage"    : "$NET35CABPath",
+            "RefDriver"     : ""
+        }
+    ],
+    "ENVConfig"         : [
+        {
+            "Env"           : "CMCB",
+            "EnvNetBios"    : "ASD",
+            "EnvFQDN"       : "ASD.lab",
+            "EnvIPSubnet"   : "172.16.80.",
+            "EnvAdminPW"    : "P@ssw0rd"
+        },
+        {
+            "Env"           : "CMTP",
+            "EnvNetBios"    : "ASD",
+            "EnvFQDN"       : "asd.lab",
+            "EnvIPSubnet"   : "172.16.10.",
+            "EnvAdminPW"    : "P@ssw0rd",
+            "EnvTimeZone"   : "Central Standard Time",
+            "InputLocale"   : "0409:00000409",
+            "SystemLocale"  : "en-us",
+            "UILanguage"    : "en-us",
+            "UILanguageFB"  : "en-us",
+            "UserLocale"    : "en-us",
+            "VMList": [
+                {
+                    "VMID"          : "VM1",
+                    "VMName"        : "CM1",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "DC,SQL,ADK,PE,CM",
+                    "VMIPLastOctet" : "10",
+                    "CMSiteCode"    : "TP1",
+                    "CMVersion"     : "TP",
+                    "CMPreReqPreDL" : "1",
+                    "CMPreReqPath"  : "1",
+                    "EnableSnapShot": "0"
+                },
+                {
+                    "ID"            : "VM2",
+                    "VMName"        : "CM2",
+                    "OS"            : "Workstation",
+                    "Roles"         : "",
+                    "IPLastOctet"   : "100",
+                    "DomainJoin"    : "False",
+                    "EnableSnapShot": "0"
+                }
+            ]
+
+        }
+    ]
+}
