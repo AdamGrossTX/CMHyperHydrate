@@ -1,88 +1,103 @@
 Function New-LabVM {
 [cmdletbinding()]
 param(
-    [Parameter(Mandatory)]
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
     $ENVName = $Script:Env.Env,
 
-    [Parameter(Mandatory)]
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
     $VMName = $Script:VMConfig.VMName,
 
-    [Parameter(Mandatory)]
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
-    $ReferenceVHDX = $Script.VH,
+    $ReferenceVHDX = $Script:base.SvrVHDX,
 
-    [Parameter(Mandatory)]
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
-    $VMPath,
+    $VMPath = $script:base.VMPath,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $VMHDPath = $Script:VMConfig.VMHDPath,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $VMHDName = $Script:VMConfig.VMHDName,
 
     [Parameter()]
     [UInt64]
     [ValidateNotNullOrEmpty()]
     [ValidateRange(512MB, 64TB)]
-    $StartupMemory = 8gb,
+    $StartupMemory = 4gb,
+    #$Script:VMConfig.StartupMemory,
 
     [ValidateNotNullOrEmpty()]
     [int]
-    $Generation = 2,
+    $Generation = $Script:VMConfig.Generation,
 
     [Parameter()]
     [switch]
-    $EnableSnapshot,
+    $EnableSnapshot = $Script:VMConfig.EnableSnapshot,
     
     [Parameter()]
     [switch]
-    $StartUp = $False,
+    $StartUp = $Script:VMConfig.AutoStartup,
 
     [Parameter()]
     [string]
-    $DomainName,
+    $DomainName = $Script:Env.EnvFQDN,
 
     [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
-    $IPAddress,
+    $IPAddress = $Script:VMConfig.IPAddress,
     
     [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string]
-    $SwitchName,
+    $SwitchName = $Script:Env.EnvSwitchName,
 
-    [Parameter(Mandatory)]
+    [Parameter()]
     [pscredential]
-    $LocalAdminCreds
+    $LocalAdminCreds = $Script:base.LocalAdminCreds
     
 )
 
 ##TODO##
 ##Add logic to join to a domain if not the domain controller and if set to join the domain (wouldn't do it for AutoPilot testing and such.)
 
-    $VMName = "$($ENVName)$($DeviceName)"
-    $VHDXName = "$($VMPath)\$($VMName)\Virtual Hard Disks\$($VMName)c.vhdx"
-    If(!(Test-Path $VHDXName)) {
-        Copy-Item -Path $ReferenceVHDX -Destination $VHDXName
+    If(!(Test-Path "$($VMHDPath)\$($VMHDName)" -ErrorAction SilentlyContinue)) {
+        New-Item -Path $VMHDPath -ItemType Directory
+        Copy-Item -Path $ReferenceVHDX -Destination "$($VMHDPath)\$($VMHDName)"
     }
-    New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath $VHDXName -Generation $Generation -Path $VMPath
+    New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
     Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
     Set-VM -name $VMName -checkpointtype Disabled
     Get-VMNetworkAdapter -VMName $VMName | Connect-VMNetworkAdapter -SwitchName $SwitchName
     if($StartUp) {
         Start-VM $VMName
+        
+        $SBRenameComputer = {
+            Param($Name)
+            Rename-Computer -NewName $Name;
+            Restart-Computer -Force;
+        }
+
+        while ((Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
+        $PSSession = New-PSSession -VMName $VMName -Credential $LocalAdminCreds
+
+        Invoke-Command -Session $PSSession -ScriptBlock $SBRenameComputer -ArgumentList $VMName
+
+        $PSSession | Remove-PSSession
+
     }
-    
-    $SBRenameComputer = {
-        Param($Name)
-        Rename-Computer -Name $Name;
-        Restart-Computer;
-    }
-
-    while ((Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
-    $PSSession = New-PSSession -VMName $VMName -Credential $LocalAdminCreds
-
-    Invoke-Command -Session $PSSession -ScriptBlock $SBRenameComputer -ArgumentList $VMName
-
-    $PSSessionDomain | Remove-PSSession
-
-
 <#
 
     $SBSetIPAndName = {

@@ -17,8 +17,8 @@ Function Get-LabConfig {
     $ENVConfig = $Config.ENVConfig | Where-Object {$_.ENV -eq $Config.ENVToBuild}
     $SvrRefConfig = $Config.ServerRef
     $WksRefConfig = $Config.WorkstationRef
-    $Global:SvrVMs = $ENVConfig.ServerVMList
-    $Global:WksVMs = $ENVConfig.WorkstationVMList
+    $Script:SvrVMs = $ENVConfig.ServerVMList
+    $Script:WksVMs = $ENVConfig.WorkstationVMList
  
     $Script:base = @{}
     $Script:env = @{}
@@ -45,7 +45,7 @@ Function Get-LabConfig {
         }
     }
 
-    $base["VMPath"] = "$($base.PathLab)\$($base.ENVToBuild)"
+    $base["VMPath"] = "$($base.LabPath)\$($env.Env)"
     $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["SvrISO"] = Get-ChildItem -Path $base.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["WinISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName

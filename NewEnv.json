@@ -71,7 +71,21 @@
                     "CMVersion"     : "TP",
                     "CMPreReqPreDL" : "1",
                     "CMPreReqPath"  : "1",
-                    "EnableSnapShot": "0"
+                    "EnableSnapShot": "0",
+                    "StartupMemory" : "4gb",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "0"
+                },
+                {
+                    "VMID"          : "VM2",
+                    "VMName"        : "RRAS1",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "RRAS",
+                    "VMIPLastOctet" : "1",
+                    "EnableSnapShot": "0",
+                    "StartupMemory" : "4gb",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "0"
                 }
             ],
             "WorkstationVMList": [                
