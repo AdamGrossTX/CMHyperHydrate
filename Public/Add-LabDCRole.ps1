@@ -4,18 +4,18 @@
             [Parameter()]
             [ValidateNotNullOrEmpty()]
             [string]
-            $VMName = $Global:VMConfig.VMName,
+            $VMName = $Script:VMConfig.VMName,
     
+            [Parameter()]
+            [ValidateNotNullOrEmpty()]
+            [string]
+            $IPAddress = $Script:VMConfig.VMIPAddress,
+
             [Parameter()]
             [ValidateNotNullOrEmpty()]
             [string]
             $IPSubNet = $Script:Env.EnvIPSubnet,
-    
-            [Parameter()]
-            [ValidateNotNullOrEmpty()]
-            [string]
-            $IPLastOctet = $Global:VMConfig.VMIPLastOctet,
-    
+           
             [Parameter()]
             [ValidateNotNullOrEmpty()]
             [string]
@@ -37,9 +37,8 @@
             ##Add custom default Gateway for DC when used with and without a RAAS Server
             $SBSetIPAndName = {
                 param($InterfaceID, $SubNet, $Octet, $ServerName)
-                New-NetIPAddress -InterfaceIndex $InterfaceID -AddressFamily IPv4 -IPAddress "$($SubNet)$($Octet)" -PrefixLength 24 -DefaultGateway "$($SubNet)1";
+                New-NetIPAddress -InterfaceIndex $InterfaceID -AddressFamily IPv4 -IPAddress $IPAddress -PrefixLength 24 -DefaultGateway "$($IPSubNet)1";
                 Set-DnsClientServerAddress -ServerAddresses ('8.8.8.8') -InterfaceIndex $InterfaceID;
-                Rename-Computer -Name $ServerName;
                 Restart-Computer;
             }
     

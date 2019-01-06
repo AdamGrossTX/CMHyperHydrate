@@ -23,6 +23,27 @@ Function New-LabEnv {
         $VMConfig["AutoStartup"] = If($Script:VMConfig.AutoStartup -eq 1) {$true} else {$false}
         $VMConfig["StartupMemory"] = $Script:VMConfig.StartupMemory -as [UInt64]
         Write-Host $VM.VMName
-        New-LabVM 
+        #New-LabVM
+        $Roles = $VM.VMRoles.Split(",")
+        If($Roles.Contains("DC"))
+        {
+            Add-LabDCRole
+        }
+        If($Roles.Contains("SQL"))
+        {
+            #Add-LabSQLRole
+        }
+        If($Roles.Contains("CM"))
+        {
+            #Add-LabCMRole
+        }
+        If($Roles.Contains("AP"))
+        {
+            #Add-LabAPRole
+        }
+        If($Roles.Contains("RRAS"))
+        {
+            #Add-LabRRASRole
+        }
     }
 }
