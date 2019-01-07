@@ -52,10 +52,10 @@
             }
     
             $SBConfigureDHCP = {
-                param($ServerName, $DomainFQDN, $SubNet, $Octet) 
+                param($ServerName, $DomainFQDN, $IPAddress) 
                 "netsh dhcp add securitygroups;"
                 Restart-Service dhcpserver;
-                Add-DhcpServerInDC -DnsName "$($ServerName).$($DomainFQDN)" -IPAddress "$($SubNet)$($Octet)";
+                Add-DhcpServerInDC -DnsName "$($ServerName).$($DomainFQDN)" -IPAddress $IPAddress;
                 Set-ItemProperty -Path registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ServerManager\Roles\12 -Name ConfigurationState -Value 2;
             }
     
@@ -106,7 +106,7 @@
                 $PSSessionDomain = New-PSSession -VMName $VMName -Credential $DomainAdminCreds
                 #Write-LogEntry -Message "PowerShell Direct session for $($DomainAdminCreds.UserName) has been initated with DC Service named: $VMName" -Type Information
                 
-                Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBConfigureDHCP -ArgumentList $VMName, $DomainFQDN, $IPSubNet, $IPLastOctet
+                Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBConfigureDHCP -ArgumentList $VMName, $DomainFQDN, $IPAddress
                 
                 Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBCreateLabDomain
                 #Write-LogEntry -Message "System Management Container created in $DomainFQDN forrest on $VMName" -type Information

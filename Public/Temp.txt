@@ -1,0 +1,20 @@
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ConfigMgrSiteCode = $Script:VMConfig.CMSiteCode,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet("Prod","TP")]
+        [string]
+        $ConfigMgrVersion = $Script:VMConfig.CMVersion,
+
+        [Parameter()]
+        [int]
+        $ConfigMgrPrereqsPreDL = $Script:VMConfig.CMPreReqPreDL,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ConfigMgrPrereqsPath = ""

@@ -35,6 +35,9 @@ Function Get-LabConfig {
         ($Img).psobject.properties | ForEach-Object {$WksRef[$_.Name] = $_.Value}
     }
 
+    $base["ConfigMgrCBPrereqsPath"] = "$($base.PathConfigMgr)\Prereqs"
+    $base["ConfigMgrTPPrereqsPath"] = "$($base.PathConfigMgrTP)\Prereqs"
+
     ForEach ($key in @($base.keys)) {
         If ($key -like "Path*")
         {
@@ -61,4 +64,5 @@ Function Get-LabConfig {
     $base["DomainAdminName"] = "$($Env.EnvNetBios)\Administrator"
     $base["DomainAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
     $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
+        
 }

@@ -1,14 +1,14 @@
 {
     "ENVToBuild"        : "CMTP",
-    "LabPath"           : "C:\\Lab",
-    "SourcePath"        : "C:\\Lab",
+    "LabPath"           : "L:\\Lab",
+    "SourcePath"        : "L:\\Lab",
     "PathSQL"           : "\\Media\\ISO\\SQL",
     "PathSvr"           : "\\Media\\ISO\\Server",
     "PathWin10"         : "\\Media\\ISO\\Windows10",
     "PathADK"           : "\\Media\\ADK",
     "PathADKWinPE"      : "\\Media\\ADKWinPE",
     "PathConfigMgrTP"   : "\\Media\\ConfigMgrTP",
-    "PathConfigMgr"     : "\\Media\\ConfigMgr",
+    "PathConfigMgrCB"   : "\\Media\\ConfigMgrCB",
     "PathPackages"      : "\\Media\\Packages",
     "PathDrivers"       : "\\Media\\Drivers",
     "PathRefImage"      : "\\ReferenceImage",
@@ -74,7 +74,7 @@
                     "EnableSnapShot": "0",
                     "StartupMemory" : "4gb",
                     "Generation"    : "2",
-                    "AutoStartup"   : "0"
+                    "AutoStartup"   : "1"
                 },
                 {
                     "VMID"          : "VM2",
@@ -85,7 +85,7 @@
                     "EnableSnapShot": "0",
                     "StartupMemory" : "4gb",
                     "Generation"    : "2",
-                    "AutoStartup"   : "0"
+                    "AutoStartup"   : "1"
                 }
             ],
             "WorkstationVMList": [                

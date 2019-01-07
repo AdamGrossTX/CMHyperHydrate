@@ -5,10 +5,10 @@ Function New-LabEnv {
         $ConfigFileName
     )
     Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
-    #New-LabSwitch
-    #New-LabUnattendXML
-    #New-LabRefVHDX -BuildType "Server"
-    #New-LabVM
+    New-LabSwitch
+    New-LabUnattendXML
+    New-LabRefVHDX -BuildType "Server"
+  
 
     ForEach ($VM in $Script:SvrVMs)
     {
@@ -22,6 +22,7 @@ Function New-LabEnv {
         $VMConfig["EnableSnapshot"] = If($Script:VMConfig.EnableSnapshot -eq 1) {$true} else {$false}
         $VMConfig["AutoStartup"] = If($Script:VMConfig.AutoStartup -eq 1) {$true} else {$false}
         $VMConfig["StartupMemory"] = $Script:VMConfig.StartupMemory -as [UInt64]
+
         Write-Host $VM.VMName
         #New-LabVM
         $Roles = $VM.VMRoles.Split(",")
@@ -31,11 +32,13 @@ Function New-LabEnv {
         }
         If($Roles.Contains("SQL"))
         {
-            #Add-LabSQLRole
+            Add-LabSQLRole
         }
         If($Roles.Contains("CM"))
         {
-            #Add-LabCMRole
+            $VMConfig["ConfigMgrMediaPath"] = Switch($Script:VMConfig.CMVersion) {"TP" {$base.PathConfigMgrTP; break;} "CB" {$base.PathConfigMgrCB; break;}}
+            $VMConfig["ConfigMgrPrereqPath"] = "$($Script:VMConfig.ConfigMgrMediaPath)\Prereqs"
+            Add-LabCMRole
         }
         If($Roles.Contains("AP"))
         {
