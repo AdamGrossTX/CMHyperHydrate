@@ -5,9 +5,10 @@ Function New-LabEnv {
         $ConfigFileName
     )
     Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
-    New-LabSwitch
+    #New-LabSwitch
     New-LabUnattendXML
     #New-LabRefVHDX -BuildType "Server"
+  
 
     ForEach ($VM in $Script:SvrVMs)
     {
@@ -32,6 +33,10 @@ Function New-LabEnv {
         If($Roles.Contains("SQL"))
         {
             Add-LabSQLRole
+        }
+        If($Roles.Contains("CA"))
+        {
+            #Add-CARole
         }
         If($Roles.Contains("CM"))
         {

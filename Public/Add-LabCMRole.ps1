@@ -68,32 +68,34 @@ Function Add-LabCMRole {
         $DomainAdminCreds = $Script:base.DomainAdminCreds  
     )
 
-        if((Get-VM -Name $VMName).State -eq "Running") {
-            Stop-VM -Name $VMName
-        }
+
+    if((Get-VM -Name $VMName).State -eq "Running") {
+        Stop-VM -Name $VMName
+    }
 
 
-       
-        $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
-        $ConfigMgrPath = "$($disk):$VMDataPath\ConfigMgr"
-        $ADKPath = "$($disk):$VMDataPath\adk"
-        $ADKWinPEPath = "$($disk):$VMDataPath\adkwinpe"
+    
+    $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
+    $ConfigMgrPath = "$($disk):$VMDataPath\ConfigMgr"
+    $ADKPath = "$($disk):$VMDataPath\adk"
+    $ADKWinPEPath = "$($disk):$VMDataPath\adkwinpe"
 
 
-        #write-logentry -message "$cmvhdx has been mounted to allow for file copy to $disk" -type information
-        Copy-Item -Path $ConfigMgrMedia -Destination $ConfigMgrPath -Recurse
-        #write-logentry -message "SCCM Media copied to $disk`:\data\SCCM" -type information
-        Copy-Item -Path $ADKMedia -Destination $ADKPath -Recurse
-        #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
-        Copy-Item -Path $ADKWinPEMedia -Destination $ADKWinPEPath -Recurse
-        #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
-        #Copy-Item -Path $SQLMedia -Destination "$($disk):\data\SQL" -Recurse
-        #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
-        Dismount-VHD $VMPath
+    #write-logentry -message "$cmvhdx has been mounted to allow for file copy to $disk" -type information
+    Copy-Item -Path $ConfigMgrMedia -Destination $ConfigMgrPath -Recurse
+    #write-logentry -message "SCCM Media copied to $disk`:\data\SCCM" -type information
+    Copy-Item -Path $ADKMedia -Destination $ADKPath -Recurse
+    #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
+    Copy-Item -Path $ADKWinPEMedia -Destination $ADKWinPEPath -Recurse
+    #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
+    #Copy-Item -Path $SQLMedia -Destination "$($disk):\data\SQL" -Recurse
+    #write-logentry -message "ADK Media copied to $disk`:\data\adk" -type information
+    Dismount-VHD $VMPath
 
-        if((Get-VM -Name $VMName).State -eq "Off") {
-            Start-VM -Name $VMName
-        }
+    if((Get-VM -Name $VMName).State -eq "Off") {
+        Start-VM -Name $VMName
+    }
+    
 
         while ((Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
         $PSSessionDomain = New-PSSession -VMName $VMName -Credential $DomainAdminCreds
@@ -124,9 +126,12 @@ Function Add-LabCMRole {
             Start-Process -FilePath "$($path)\adkwinpesetup.exe" -ArgumentList $SetupSwitches -NoNewWindow -Wait
         }
 
-        Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBADK -ArgumentList $ADKPath
-        Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBWinPEADK -ArgumentList $ADKWinPEPath
-        Invoke-Command -Session $PSSessionDomain -ScriptBlock {Restart-Computer -Force}
+        while ((Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
+        $PSSessionDomain = New-PSSession -VMName $VMName -Credential $DomainAdminCreds
+
+    Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBADK -ArgumentList $ADKPath
+    Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBWinPEADK -ArgumentList $ADKWinPEPath
+    Invoke-Command -Session $PSSessionDomain -ScriptBlock {Restart-Computer -Force}
         
         #EndRegion
         
@@ -138,6 +143,10 @@ Function Add-LabCMRole {
         #if (((Invoke-Pester -TestName "CM" -PassThru -show None).TestResult | Where-Object {$_.name -match "CM SCCM Installed"}).result -notmatch "Passed") {
         #    $cmOSName = Invoke-Command -Session $PSSessionDomain -ScriptBlock {$env:COMPUTERNAME}
         #    write-logentry -message "Host name for $cmname is: $cmosname"
+
+        while ((Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
+        $PSSessionDomain = New-PSSession -VMName $VMName -Credential $DomainAdminCreds
+  
             
             if ($ConfigMgrVersion -eq "CB") {
                 $HashIdent = @{'action' = 'InstallPrimarySite'
@@ -160,7 +169,7 @@ Function Add-LabCMRole {
                 'RoleCommunicationProtocol' = "HTTPorHTTPS";
                 'ClientsUsePKICertificate' = "0";
                 'PrerequisiteComp' = "$($ConfigMgrPrereqsPreDL)";
-                'PrerequisitePath' = "$($ConfigMgrPrereqsPath)";
+                'PrerequisitePath' = "$($ConfigMgrPath)\Prereqs";
                 'ManagementPoint' = "$($VMName).$($DomainFQDN)";
                 'ManagementPointProtocol' = "HTTP";
                 'DistributionPoint' = "$($VMName).$($DomainFQDN)";
@@ -202,7 +211,7 @@ Function Add-LabCMRole {
             
 
             $SBCreateINI = {
-                param($INI) 
+                param($INI,$CMMedia) 
                 New-Item -ItemType File -Path "$($CMMedia)\CMinstall.ini" -Value $INI -Force
             }
 
@@ -216,12 +225,28 @@ Function Add-LabCMRole {
                 Start-Process -FilePath "$($CMMedia)\SMSSETUP\bin\x64\setup.exe" -ArgumentList "/script $($CMMedia)\CMinstall.ini"
             }
 
+            $SBCMExtras = {
+                param($sitecode, $DomainDN)
+                import-module "$(($env:SMS_ADMIN_UI_PATH).remove(($env:SMS_ADMIN_UI_PATH).Length -4, 4))ConfigurationManager.psd1"; 
+                if($null -eq (Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $env:COMPUTERNAME}
+                Set-Location "$((Get-PSDrive -PSProvider CMSite).name)`:"; 
+                #New-CMBoundary -Type IPSubnet -Value "$($ipsub)/24" -name $Subnetname;
+                New-CMBoundary -DisplayName "DefaultBoundary" -BoundaryType ADSite -Value "Default-First-Site-Name"
+                New-CMBoundaryGroup -name "DefaultBoundary" -DefaultSiteCode "$((Get-PSDrive -PSProvider CMSite).name)";
+                Add-CMBoundaryToGroup -BoundaryName "DefaultBoundary" -BoundaryGroupName "DefaultBoundary";
+                $Schedule = New-CMSchedule -RecurInterval Minutes -Start "2012/10/20 00:00:00" -End "2013/10/20 00:00:00" -RecurCount 10;
+                Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $sitecode -Enabled $True -EnableDeltaDiscovery $True -PollingSchedule $Schedule -AddActiveDirectoryContainer "LDAP://$domaindn" -Recursive;
+                Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $sitecode;
+            }
+
+
             #write-logentry -message "CM install ini for $cmname is: $cminstallini" -type information
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBCreateINI -ArgumentList $CMInstallINI | Out-Null
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBExtSchema -ArgumentList $ConfigMgrMedia | Out-Null
+
+            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBCreateINI -ArgumentList $CMInstallINI,$ConfigMgrPath | Out-Null
+            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBExtSchema -ArgumentList $ConfigMgrPath | Out-Null
             #write-logentry -message "AD Schema has been exteded for SCCM on $domainfqdn"
             #write-logentry -message "SCCM installation process has started on $cmname this will take some time so grab a coffee" -type information
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBInstallCM -ArgumentList $ConfigMgrMedia | Out-Null
+            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBInstallCM -ArgumentList $ConfigMgrPath | Out-Null
             while ((invoke-command -Session $PSSessionDomain -ScriptBlock {get-content C:\ConfigMgrSetup.log | Select-Object -last 1 | Where-Object {$_ -like 'ERROR: Failed to ExecuteConfigureServiceBrokerSp*'}}).count -eq 0) {
                 start-sleep -seconds 15
             }
@@ -230,6 +255,8 @@ Function Add-LabCMRole {
                 start-sleep -seconds 15
             }
             Invoke-Command -Session $PSSessionDomain -ScriptBlock {Get-Process setupwpf | Stop-Process -Force}
+
+            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBCMExtras -ArgumentList $ConfigMgrSiteCode, ("dc=" + ($DomainFQDN.Split('.') -join ",dc=")) | Out-Null
             #write-logentry -message "SCCM has been installed on $cmname" -type information
             $PSSessionDomain | Remove-PSSession
             #write-logentry -message "Powershell Direct session for $($domuser.username) on $cmname has been disposed" -type information
