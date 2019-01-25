@@ -49,7 +49,7 @@
         },
         {
             "Env"           : "CMTP",
-            "EnvSwitchName" : "CMTP",
+            "EnvSwitchName" : "CMTP-InternalNAT",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "asd.lab",
             "EnvIPSubnet"   : "172.16.10.",
@@ -65,7 +65,7 @@
                     "VMID"          : "VM1",
                     "VMName"        : "CM1",
                     "VMOS"          : "Server",
-                    "VMRoles"       : "DC,SQL,ADK,PE,CM",
+                    "VMRoles"       : "DC,SQL,ADK,PE,CM,CA",
                     "VMIPLastOctet" : "10",
                     "CMSiteCode"    : "TP1",
                     "CMVersion"     : "TP",

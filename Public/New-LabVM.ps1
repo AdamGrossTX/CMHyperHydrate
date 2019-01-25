@@ -35,8 +35,12 @@ param(
     [UInt64]
     [ValidateNotNullOrEmpty()]
     [ValidateRange(512MB, 64TB)]
-    $StartupMemory = 4gb,
+    $StartupMemory = 16gb,
     #$Script:VMConfig.StartupMemory,
+
+    [Parameter()]
+    [int]
+    $ProcessorCount = $Script:VMConfig.ProcessorCount,
 
     [ValidateNotNullOrEmpty()]
     [int]
@@ -78,15 +82,16 @@ param(
         Copy-Item -Path $ReferenceVHDX -Destination "$($VMHDPath)\$($VMHDName)"
     }
     New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
+    Resize-VHD -Path "$($VMHDPath)\$($VMHDName)" -SizeBytes 150gb
     Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
-    Set-VM -name $VMName -checkpointtype Disabled
+    Set-VM -name $VMName -checkpointtype Disabled -ProcessorCount $ProcessorCount
     Get-VMNetworkAdapter -VMName $VMName | Connect-VMNetworkAdapter -SwitchName $SwitchName
     if($StartUp) {
         Start-VM $VMName
         
         $SBRenameComputer = {
             Param($Name)
-            Rename-Computer -NewName $Name;
+            Rename-Computer -NewName "$($Name)";
             Restart-Computer -Force;
         }
 
