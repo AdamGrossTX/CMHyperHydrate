@@ -39,8 +39,17 @@ Param (
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $OutputFile = "$($Script:Base.LabPath)\$($Script:Base.ENVToBuild)\Unattend.XML"
+    $OutputFile = "Unattend.XML",
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $OutputPath = "$($Script:Base.LabPath)\$($Script:Base.ENVToBuild)"
+
 )
+
+New-Item -Path $OutputPath -ItemType Directory -Force
+
 $unattendTemplate = [xml]@" 
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -77,5 +86,5 @@ $unattendTemplate = [xml]@"
     </settings>
 </unattend>
 "@
-    $unattendTemplate.Save($OutputFile)
+    $unattendTemplate.Save("$($OutputPath)\$($OutputFile)")
 }

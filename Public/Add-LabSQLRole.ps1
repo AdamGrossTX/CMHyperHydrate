@@ -28,25 +28,13 @@ Function Add-LabSQLRole {
         $VMDataPath = $Script:Base.VMDataPath
     )
 
-        if((Get-VM -Name $VMName).State -eq "Off") {
-            Start-VM -Name $VMName
-        }
-
-            #Region Install SQL
-            #if (((Invoke-Pester -TestName "CM" -PassThru -show None).TestResult | Where-Object {$_.name -match "CM SQL Instance is installed"}).result -notmatch "Passed") {
             Get-VMDvdDrive -VMName $VMName
             Add-VMDvdDrive -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
             Set-VMDvdDrive -Path $SQLISO -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
-            
-            while ((Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {"Test"} -ErrorAction SilentlyContinue) -ne "Test") {Start-Sleep -Seconds 5}
-            $PSSessionDomain = New-PSSession -VMName $VMName -Credential $DomainAdminCreds
 
-            $SQLDisk = Invoke-Command -session $PSSessionDomain -ScriptBlock {(Get-PSDrive -PSProvider FileSystem | where-object {$_.name -ne "c"}).root}
-            #write-logentry -message "$($config.sqliso) mounted as $sqldisk to $cmname" -type information
-            
+            $SQLDisk = Invoke-LabCommand -ScriptBlock {(Get-PSDrive -PSProvider FileSystem | where-object {$_.name -ne "c"}).root}
             $ConfigMgrPath = "C:$VMDataPath\ConfigMgr"
             $SQLPath = "C:$VMDataPath\SQL"
-
 
             $SQLHash = @{'ACTION' = '"Install"';
                 'SUPPRESSPRIVACYSTATEMENTNOTICE' = '"TRUE"';
@@ -104,6 +92,8 @@ Function Add-LabSQLRole {
                 $SQLInstallINI += "`r`n"
             }
 
+
+            #region Script Blocks
             $SBSQLINI = {
                 param($ini,$SQLPath) 
                 new-item -ItemType file -Path "$($SQLPath)\ConfigurationFile.INI" -Value $INI -Force
@@ -135,26 +125,14 @@ Function Add-LabSQLRole {
 
             $SBInstallSQLNativeClient = {
                 param($ConfigMgrPath)
-                start-process -FilePath "C:\windows\system32\msiexec.exe" -ArgumentList "/I $($ConfigMgrPath)\Prereqs\sqlncli.msi /QN REBOOT=ReallySuppress /l*v $($ConfigMgrPath)\SQLLog.log"
+                start-process -FilePath "C:\windows\system32\msiexec.exe" -ArgumentList "/I $($ConfigMgrPath)\Prereqs\sqlncli.msi /QN REBOOT=ReallySuppress /l*v $($ConfigMgrPath)\SQLLog.log" -Wait
             }
-
-
-            #write-logentry -message "SQL Configuration for $cmname is: $sqlinstallini" -type information
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBSQLINI -ArgumentList $SQLInstallINI,$SQLPath | out-null
-            #write-logentry -message "SQL installation has started on $cmname this can take some time" -type information
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBSQLInstallCmd -ArgumentList $SQLDisk,$SQLPath | out-null
-            #write-logentry -message "SQL installation has completed on $cmname told you it would take some time" -type information
-            #Invoke-Command -Session $cmsession -ScriptBlock {Import-Module sqlps;$wmi = new-object ('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer');$Np = $wmi.GetSmoObject("ManagedComputer[@Name='$env:computername']/ ServerInstance[@Name='MSSQLSERVER']/ServerProtocol[@Name='Np']");$Np.IsEnabled = $true;$Np.Alter();Get-Service mssqlserver | Restart-Service}
-
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBSQLMemory | out-null 
-            Invoke-Command -Session $PSSessionDomain -ScriptBlock $SBAddWSUS | out-null
-            Invoke-command -Session $PSSessionDomain -scriptblock $SBWSUSPostInstall | out-null
-            Invoke-command -Session $PSSessionDomain -ScriptBlock $SBInstallSQLNativeClient -ArgumentList $ConfigMgrPath| out-null
-
+            #endregion
+            Invoke-LabCommand -ScriptBlock $SBSQLINI -MessageText "SBSQLINI" -ArgumentList $SQLInstallINI,$SQLPath | out-null
+            Invoke-LabCommand -ScriptBlock $SBSQLInstallCmd -MessageText "SBSQLInstallCmd" -ArgumentList $SQLDisk,$SQLPath | out-null
+            Invoke-LabCommand -ScriptBlock $SBSQLMemory -MessageText "SBSQLMemory" | out-null 
+            Invoke-LabCommand -ScriptBlock $SBAddWSUS -MessageText "SBAddWSUS" | out-null
+            Invoke-LabCommand -scriptblock $SBWSUSPostInstall -MessageText "SBWSUSPostInstall" | out-null
+            Invoke-LabCommand -ScriptBlock $SBInstallSQLNativeClient -MessageText "SBInstallSQLNativeClient" -ArgumentList $ConfigMgrPath| out-null
             Set-VMDvdDrive -VMName $VMName -Path $null
-            $PSSessionDomain | Remove-PSSession
-            #write-logentry -message "SQL ISO dismounted from $cmname" -type information
-        #}
-
-        #end region    
 }

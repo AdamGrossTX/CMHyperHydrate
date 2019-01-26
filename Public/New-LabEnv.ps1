@@ -1,15 +1,15 @@
 Function New-LabEnv {
+[cmdletbinding()]
     Param (
         [Parameter()]
         [String]
         $ConfigFileName
     )
     Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
-    #New-LabSwitch
-    New-LabUnattendXML
+    #New-LabUnattendXML
     #New-LabRefVHDX -BuildType "Server"
-  
 
+    #New-LabSwitch
     ForEach ($VM in $Script:SvrVMs)
     {
         $Script:VMConfig = @{}
@@ -24,15 +24,16 @@ Function New-LabEnv {
         $VMConfig["StartupMemory"] = $Script:VMConfig.StartupMemory -as [UInt64]
 
         Write-Host $VM.VMName
-        New-LabVM
+        #New-LabVM
+
         $Roles = $VM.VMRoles.Split(",")
         If($Roles.Contains("DC"))
         {
-            Add-LabDCRole
+            #Add-LabDCRole
         }
         If($Roles.Contains("SQL"))
         {
-            Add-LabSQLRole
+            #Add-LabSQLRole
         }
         If($Roles.Contains("CA"))
         {
