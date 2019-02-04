@@ -54,12 +54,21 @@ Function Test-LabConnection {
 
         If($Result -eq "Connection Test Was Successful")
         {
-            $Connected = $True
+            $Result = Invoke-Command -VMName $VMName -Credential $Creds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;} -ErrorAction Stop
+            If($Result)
+            {
+                Write-Host $Result 
+                $Connected = $True
+            }
+            else
+            {
+                $Connected = $false
+            }
         }
         ElseIf($Result -eq "The credential is invalid.") {
-            Write-Warning "Retying Credentials and again."
+            Write-Warning "Retying Credentials again."
             $Connected = $False
-            Start-Sleep -Seconds 5
+            Start-Sleep -Seconds 10
         } 
         ElseIf($Result -eq "The virtual machine $($VMName) is not in running state.") {
             $VMState = (Get-VM -Name $VMName).State

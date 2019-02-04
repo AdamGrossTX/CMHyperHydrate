@@ -103,5 +103,7 @@ param(
             Start-VM -Name $VMName
             start-sleep -Seconds 30
         }
-        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMName
+
+        $VM = Get-VM -Name $VMName
+        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMName -VMID $VM.VMID
 }

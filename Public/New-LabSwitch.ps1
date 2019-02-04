@@ -11,9 +11,8 @@ Param
     $IPSubnet = $Script:Env.EnvIPSubnet
 
 )
-
-        Get-NetNat -Name $SwitchName | Remove-NetNat -Confirm:$false -ErrorAction SilentlyContinue
-        Get-VMSwitch -Name $SwitchName | Remove-VMSwitch -Confirm:$False -Force -ErrorAction SilentlyContinue
+        Get-NetNat -Name $SwitchName -ErrorAction SilentlyContinue | Remove-NetNat -Confirm:$false -ErrorAction SilentlyContinue
+        Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue | Remove-VMSwitch -Confirm:$False -Force -ErrorAction SilentlyContinue
         New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
         New-NetIPAddress -IPAddress "$($IPSubnet)`1" -PrefixLength 24 -InterfaceAlias "vEthernet ($($SwitchName))"
         New-NetNAT -Name $SwitchName -InternalIPInterfaceAddressPrefix "$($IPSubnet)0`/24"

@@ -11,6 +11,14 @@ Function Invoke-LabCommand {
         $ScriptBlock,
 
         [Parameter()]
+        [string]
+        $FilePath,
+
+        [Parameter()]
+        [Guid[]]
+        $VMID,
+
+        [Parameter()]
         [System.Object[]]
         $ArgumentList,
 
@@ -40,22 +48,20 @@ Function Invoke-LabCommand {
     $Result = $Null
 
     If(Test-LabConnection -Type $SessionType -VMName $VMName) {
-        Switch($SessionType) {
-            "Local" {
-                $Session = New-PSSession -VMName $VMName -Credential $LocalAdminCreds;
-                break;
-            }
-            "Domain" {
-                $Session = New-PSSession -VMName $VMName -Credential $DomainAdminCreds; 
-                break;
-            }
+        $Creds = Switch($SessionType) {
+            "Local" {$LocalAdminCreds;break;}
+            "Domain" {$DomainAdminCreds;break;}
             default {break;}
         }
 
         Write-Host "Invoking Remote Command" | out-null
         Try {
-            $Result = Invoke-Command -Session $Session -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList
-            $Session | Remove-PSSession
+            if($ScriptBlock) {
+                $Result = Invoke-Command -VMID $VMID -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -Credential $Creds
+            }
+            else {
+                $Result = Invoke-Command -VMId $VMID -Credential $Creds -FilePath $FilePath
+            }
         }
         Catch {
             Write-Warning $_.Exception.Message | out-null
