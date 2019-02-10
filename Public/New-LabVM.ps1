@@ -92,7 +92,10 @@ param(
     }
     
     If(!(Get-VM -Name $VMName -ErrorAction SilentlyContinue)) {
-        New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
+        $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
+        If($EnableSnapshot) {
+            Set-VM -VM $VM -checkpointtype Production
+        }
     }
         Resize-VHD -Path "$($VMHDPath)\$($VMHDName)" -SizeBytes 150gb
         Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
@@ -106,4 +109,6 @@ param(
 
         $VM = Get-VM -Name $VMName
         Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMName -VMID $VM.VMID
+
+        #Checkpoint-VM -VM $VM -SnapshotName "New VM Created"
 }

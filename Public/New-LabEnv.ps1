@@ -38,7 +38,7 @@ Function New-LabEnv {
         }
         If($Roles.Contains("SQL"))
         {
-            #Add-LabSQLRole
+            Add-LabSQLRole
         }
         If($Roles.Contains("CA"))
         {
@@ -47,9 +47,9 @@ Function New-LabEnv {
         }
         If($Roles.Contains("CM"))
         {
-           #$VMConfig["ConfigMgrMediaPath"] = Switch($Script:VMConfig.CMVersion) {"TP" {$base.PathConfigMgrTP; break;} "CB" {$base.PathConfigMgrCB; break;}}
-            #$VMConfig["ConfigMgrPrereqPath"] = "$($Script:VMConfig.ConfigMgrMediaPath)\Prereqs"
-            #Add-LabCMRole
+           $VMConfig["ConfigMgrMediaPath"] = Switch($Script:VMConfig.CMVersion) {"TP" {$base.PathConfigMgrTP; break;} "CB" {$base.PathConfigMgrCB; break;}}
+           $VMConfig["ConfigMgrPrereqPath"] = "$($Script:VMConfig.ConfigMgrMediaPath)\Prereqs"
+           Add-LabCMRole
         }
         If($Roles.Contains("AP"))
         {

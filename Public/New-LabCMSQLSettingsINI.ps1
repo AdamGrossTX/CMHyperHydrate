@@ -40,7 +40,7 @@ function New-LabCMSQLSettingsINI {
         'FILESTREAMLEVEL'                = '"0"';
         'ENABLERANU'                     = '"FALSE"';
         'SQLCOLLATION'                   = '"SQL_Latin1_General_CP1_CI_AS"';
-        'SQLSVCACCOUNT'                  = """$DomainAdminCreds.UserName"""; 
+        'SQLSVCACCOUNT'                  = """$($DomainAdminCreds.UserName)"""; 
         'SQLSVCPASSWORD'                 = """$($DomainAdminCreds.GetNetworkCredential().Password)""" 
         'SQLSVCINSTANTFILEINIT'          = '"FALSE"';
         'SQLSYSADMINACCOUNTS'            = """$($DomainAdminCreds.UserName)"" ""$($DomainNetBiosName)\Domain Users"""; 

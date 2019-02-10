@@ -68,6 +68,7 @@ Function Add-LabCMRole {
         $DomainAdminCreds = $Script:base.DomainAdminCreds  
     )
 
+    $VM = Get-VM -Name $VMName
 
     if((Get-VM -Name $VMName).State -eq "Running") {
         Stop-VM -Name $VMName
@@ -86,13 +87,7 @@ Function Add-LabCMRole {
     $ConfigMgrPath = "C:$VMDataPath\ConfigMgr"
     $ADKPath = "C:$VMDataPath\adk"
     $ADKWinPEPath = "C:$VMDataPath\adkwinpe"
-
-    $SBSQLSettings = {
-        [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-        (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
-    }
     
-    $SQLSettings = Invoke-LabCommand -ScriptBlock $SBSQLSettings -MessageText "SBSQLSettings"
 
     #region INIFile
     if ($ConfigMgrVersion -eq "CB") {
@@ -166,6 +161,12 @@ Function Add-LabCMRole {
     #endregion
 
     #region ScriptBlocks
+
+    $SBSQLSettings = {
+        [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
+        (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
+    }
+
     $SBAddFeatures = {
         Add-WindowsFeature BITS, BITS-IIS-Ext, BITS-Compact-Server, Web-Server, Web-WebServer, Web-Common-Http, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-App-Dev, Web-Net-Ext, Web-Net-Ext45, Web-ASP, Web-Asp-Net, Web-Asp-Net45, Web-CGI, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Health, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Performance, Web-Stat-Compression, Web-Security, Web-Filtering, Web-Basic-Auth, Web-IP-Security, Web-Url-Auth, Web-Windows-Auth, Web-Mgmt-Tools, Web-Mgmt-Console, Web-Mgmt-Compat, Web-Metabase, Web-Lgcy-Mgmt-Console, Web-Lgcy-Scripting, Web-WMI, Web-Scripting-Tools, Web-Mgmt-Service, RDC;
     }
@@ -211,14 +212,16 @@ Function Add-LabCMRole {
         Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $sitecode;
     }
     #EndRegion
-        
-    Invoke-LabCommand -ScriptBlock $SBAddFeatures -MessageText "SBAddFeatures" | Out-Null
-    Invoke-LabCommand -ScriptBlock $SBADK -ArgumentList $ADKPath -MessageText "SBADK"
-    Invoke-LabCommand -ScriptBlock $SBWinPEADK -ArgumentList $ADKWinPEPath -MessageText "SBWinPEADK" 
-    start-sleep -Seconds 30
-    Invoke-LabCommand -ScriptBlock $SBCreateINI -ArgumentList $CMInstallINI,$ConfigMgrPath -MessageText "SBCreateINI" | Out-Null
-    Invoke-LabCommand -ScriptBlock $SBExtSchema -ArgumentList $ConfigMgrPath -MessageText "SBExtSchema" | Out-Null
-    Invoke-LabCommand -ScriptBlock $SBInstallCM -ArgumentList $ConfigMgrPath -MessageText "SBInstallCM" | out-Null
-    Invoke-LabCommand -ScriptBlock $SBCMExtras -ArgumentList $ConfigMgrSiteCode, ("dc=" + ($DomainFQDN.Split('.') -join ",dc="))  -MessageText "SBCMExtras"  | Out-Null
+    
+    $SQLSettings = Invoke-LabCommand -ScriptBlock $SBSQLSettings -MessageText "SBSQLSettings" -VMID $VM.VMID | Out-Null
+    Invoke-LabCommand -ScriptBlock $SBAddFeatures -MessageText "SBAddFeatures" -VMID $VM.VMID | Out-Null
+    Invoke-LabCommand -ScriptBlock $SBADK -ArgumentList $ADKPath -MessageText "SBADK" -VMID $VM.VMID
+    Invoke-LabCommand -ScriptBlock $SBWinPEADK -ArgumentList $ADKWinPEPath -MessageText "SBWinPEADK" -VMID $VM.VMID
+    Invoke-LabCommand -ScriptBlock $SBCreateINI -ArgumentList $CMInstallINI,$ConfigMgrPath -MessageText "SBCreateINI" -VMID $VM.VMID | Out-Null
+    Invoke-LabCommand -ScriptBlock $SBExtSchema -ArgumentList $ConfigMgrPath -MessageText "SBExtSchema" -VMID $VM.VMID | Out-Null
+    Invoke-LabCommand -ScriptBlock $SBInstallCM -ArgumentList $ConfigMgrPath -MessageText "SBInstallCM" -VMID $VM.VMID | out-Null
+    Invoke-LabCommand -ScriptBlock $SBCMExtras -ArgumentList $ConfigMgrSiteCode, ("dc=" + ($DomainFQDN.Split('.') -join ",dc="))  -MessageText "SBCMExtras" -VMID $VM.VMID | Out-Null
 
+    #Checkpoint-VM -VM $VM -SnapshotName "ConfigMgr Configuration Complete"
+        
 }

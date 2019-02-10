@@ -41,7 +41,7 @@ Function Get-LabConfig {
     ForEach ($key in @($base.keys)) {
         If ($key -like "Path*")
         {
-            $Base[$key] = $Base.LabPath + $Base[$key]
+            $Base[$key] = $Base.SourcePath + $Base[$key]
             If($CreateFolders) {
                 If(!(Test-Path -path $Base[$key])) {New-Item -path $Base[$key] -ItemType Directory;}
             }

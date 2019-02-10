@@ -1,7 +1,7 @@
 {
-    "ENVToBuild"        : "CMTP",
-    "LabPath"           : "L:\\Lab",
-    "SourcePath"        : "L:\\Lab",
+    "ENVToBuild"        : "CMTP4",
+    "LabPath"           : "L:\\Labs",
+    "SourcePath"        : "L:\\Labs\\CMHyperHydrate",
     "PathSQL"           : "\\Media\\ISO\\SQL",
     "PathSvr"           : "\\Media\\ISO\\Server",
     "PathWin10"         : "\\Media\\ISO\\Windows10",
@@ -13,6 +13,8 @@
     "PathDrivers"       : "\\Media\\Drivers",
     "PathRefImage"      : "\\ReferenceImage",
     "VMDataPath"        : "\\Data",
+    "VMLogPath"         : "\\Data\\Logs",
+    "VMScriptPath"      : "\\Data\\Scripts",
     "ServerRef"         : [
         {
             "RefID"         : "2016",
@@ -44,15 +46,15 @@
             "Env"           : "CMCB",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "ASD.lab",
-            "EnvIPSubnet"   : "172.16.80.",
+            "EnvIPSubnet"   : "172.30.80.",
             "EnvAdminPW"    : "P@ssw0rd"
         },
         {
-            "Env"           : "CMTP",
-            "EnvSwitchName" : "CMTP-InternalNAT",
+            "Env"           : "CMTP4",
+            "EnvSwitchName" : "CMTP4-InternalNAT",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "asd.lab",
-            "EnvIPSubnet"   : "172.16.10.",
+            "EnvIPSubnet"   : "172.30.20.",
             "EnvAdminPW"    : "P@ssw0rd",
             "EnvTimeZone"   : "Central Standard Time",
             "InputLocale"   : "0409:00000409",
@@ -65,41 +67,19 @@
                     "VMID"          : "VM1",
                     "VMName"        : "CM1",
                     "VMOS"          : "Server",
-                    "VMRoles"       : "DC,SQL,ADK,PE,CM,CA",
+                    "VMRoles"       : "DC,CA,SQL,ADK,PE,CM",
                     "VMIPLastOctet" : "10",
                     "CMSiteCode"    : "TP1",
                     "CMVersion"     : "TP",
                     "CMPreReqPreDL" : "1",
                     "CMPreReqPath"  : "1",
                     "EnableSnapShot": "0",
-                    "StartupMemory" : "4gb",
+                    "StartupMemory" : "16gb",
+                    "ProcessorCount" : "4",
                     "Generation"    : "2",
                     "AutoStartup"   : "1"
-                },
-                {
-                    "VMID"          : "VM2",
-                    "VMName"        : "RRAS1",
-                    "VMOS"          : "Server",
-                    "VMRoles"       : "RRAS",
-                    "VMIPLastOctet" : "1",
-                    "EnableSnapShot": "0",
-                    "StartupMemory" : "4gb",
-                    "Generation"    : "2",
-                    "AutoStartup"   : "1"
-                }
-            ],
-            "WorkstationVMList": [                
-                {
-                    "VMID"            : "VM2",
-                    "VMName"          : "Win01",
-                    "VMOS"            : "Workstation",
-                    "VMRoles"         : "",
-                    "VMIPLastOctet"   : "100",
-                    "VMDomainJoin"    : "False",
-                    "EnableSnapShot": "0"
                 }
             ]
-
         }
     ]
 }

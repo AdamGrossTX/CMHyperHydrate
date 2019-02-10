@@ -1,7 +1,7 @@
 {
     "ENVToBuild"        : "CMTP3",
-    "LabPath"           : "L:\\Lab",
-    "SourcePath"        : "L:\\Lab",
+    "LabPath"           : "L:\\Labs",
+    "SourcePath"        : "L:\\Labs\\CMHyperHydrate",
     "PathSQL"           : "\\Media\\ISO\\SQL",
     "PathSvr"           : "\\Media\\ISO\\Server",
     "PathWin10"         : "\\Media\\ISO\\Windows10",
@@ -46,7 +46,7 @@
             "Env"           : "CMCB",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "ASD.lab",
-            "EnvIPSubnet"   : "172.20.80.",
+            "EnvIPSubnet"   : "172.40.80.",
             "EnvAdminPW"    : "P@ssw0rd"
         },
         {
@@ -54,7 +54,7 @@
             "EnvSwitchName" : "CMTP3-InternalNAT",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "asd.lab",
-            "EnvIPSubnet"   : "172.20.20.",
+            "EnvIPSubnet"   : "172.40.20.",
             "EnvAdminPW"    : "P@ssw0rd",
             "EnvTimeZone"   : "Central Standard Time",
             "InputLocale"   : "0409:00000409",
@@ -73,7 +73,7 @@
                     "CMVersion"     : "TP",
                     "CMPreReqPreDL" : "1",
                     "CMPreReqPath"  : "1",
-                    "EnableSnapShot": "0",
+                    "EnableSnapShot": "1",
                     "StartupMemory" : "16gb",
                     "ProcessorCount" : "4",
                     "Generation"    : "2",

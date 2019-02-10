@@ -139,7 +139,7 @@ $SBConfigureDHCPParams = @"
 $SBConfigureDHCP = {
     & netsh dhcp add securitygroups;
     Restart-Service dhcpserver;
-    Add-DhcpServerInDC -DnsName $_ServerName.$_DomainFQDN -IPAddress $_IPAddress;
+    Add-DhcpServerInDC -DnsName "$($_ServerName).$($_DomainFQDN)" -IPAddress $_IPAddress;
     Set-ItemProperty -Path registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ServerManager\Roles\12 -Name ConfigurationState -Value 2;
     Add-DhcpServerv4Scope -name $_DomainFQDN -StartRange "$($_IPSubnet)100" -EndRange "$($_IPSubnet)150" -SubnetMask "255.255.255.0";
     Set-DhcpServerv4OptionValue -Router "$($_IPSubnet)`1" -DNSDomain $_DomainFQDN -DNSServer $_IPAddress -ScopeId $_ScopeID
@@ -166,8 +166,6 @@ $SBInstallCA = {
     Add-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools;
     Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -KeyLength 2048 -HashAlgorithm SHA1 -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -ValidityPeriod Years -ValidityPeriodUnits 5 -Force -confirm:$false
 }
-
-
         $SetDCIP += $SBSetDCIPParams
         $SetDCIP += $SBScriptTemplateBegin.ToString()
         $SetDCIP += $SBSetDCIP.ToString()
@@ -210,7 +208,11 @@ $SBInstallCA = {
 
         $VM = Get-VM -VM $VMName
         $VM | Start-VM
+        start-sleep 10
         $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
+
+        While (!(Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+        
         Foreach($Script in $Scripts) {
             Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
         }
@@ -221,33 +223,21 @@ $SBInstallCA = {
         $VM | Stop-VM -Force
         Invoke-LabCommand -FilePath "$($LabScriptPath)\AddDCFeatures.ps1" -MessageText "AddDCFeatures" -SessionType Local -VMID $VM.VMId
         Invoke-LabCommand -FilePath "$($LabScriptPath)\DCPromo.ps1" -MessageText "DCPromo" -SessionType Local -VMID $VM.VMId
+        Checkpoint-VM -VM $VM -SnapshotName "DC Promo Complete"
         #endregion
-
-        #There's a reboot here that takes forever Trying to handle it with the sleep above.
-        #I think that disconnecting the NIC before this may help as well. Need test.
-        #Or just a pause until it's back online then manually proceed.
-        #region Domain Actions
-        
-        Start-Sleep -seconds 120
-        Do {
-            Try { 
-
-                $Session = New-PSSession -VMId $VM.VMid -Credential $Creds
-                $Result = Invoke-Command -Session $Session -ScriptBlock {Get-Process "LogonUI" -ErrorAction SilentlyContinue}
-                $Result
-                }
-                Catch{
-                    Write-Warning "Not Connected. Retrying in 10 seconds."
-                    Start-Sleep -Seconds 10
-                }
-
-        } until ($Connected -eq $True)
-
+        #start-sleep -seconds 120
+        while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
         Invoke-LabCommand -FilePath "$($LabScriptPath)\ConfigureDHCP.ps1" -MessageText "ConfigureDHCP" -SessionType Domain -VMID $VM.VMId
+        Checkpoint-VM -VM $VM -SnapshotName "DHCP Configured"
+        
+        while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
         Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId
         Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
         $VM | Stop-VM -Force
 
         Write-Host "DC Configuration Complete!"
+
+        #Checkpoint-VM -VM $VM -SnapshotName "DC Configuration Complete"
+        
 
 }

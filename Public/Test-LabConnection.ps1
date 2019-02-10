@@ -1,3 +1,4 @@
+#https://blogs.technet.microsoft.com/virtualization/2016/10/11/waiting-for-vms-to-restart-in-a-complex-configuration-script-with-powershell-direct/
 Function Test-LabConnection {
     [cmdletbinding()]
     param (
@@ -21,78 +22,65 @@ Function Test-LabConnection {
         $DomainAdminCreds = $Script:base.DomainAdminCreds
     )
 
+    $VM = Get-VM -Name $VMName
+
     $Connected = $false
-        $Creds = Switch($Type) {
-            "Local" {$LocalAdminCreds; break;}
-            "Domain" {$DomainAdminCreds; break;}
-            default {break;
-        }
+    $Creds = Switch($Type) {
+        "Local" {$LocalAdminCreds; break;}
+        "Domain" {$DomainAdminCreds; break;}
+        default {break;}
     }
 
     Try {
-    Do {
-        $VMState = (Get-VM -Name $VMName).State
-        if($VMState -eq "Off") {
+        if($VM.State -eq "Off") {
             write-Host "VM Not Running. Starting VM."
             Start-VM -Name $VMName
         }
-    }
-    until ($VMState -eq "Running")
 
-    Do {
-        Write-Host "Testing $($Type) Connection."
+        # Wait for the VM's heartbeat integration component to come up if it is enabled
+        $heartbeatic  = (Get-VMIntegrationService -VM $VM | Where-Object Id -match "84EAAE65-2F2E-45F5-9BB5-0E857DC8EB47")
+        If ($heartbeatic -and ($heartbeatic.Enabled -eq $true)) {
+            $startTime = Get-Date
+            Do {
+                $timeElapsed = $(Get-Date) - $startTime
+                if ($($timeElapsed).TotalMinutes -ge 10) {
+                    Write-Host "Integration components did not come up after 10 minutes" -MessageType Error
+                    throw
+                } 
+                Start-Sleep -sec 1
+            } 
+            Until ($heartbeatic.PrimaryStatusDescription -eq "OK")
+            Write-Host "Heartbeat IC connected."
+        }
+        Do {
+            Write-Host "Testing $($Type) Connection."
         
-        Try {
-
-            $Result = Invoke-Command -VMName $VMName -Credential $Creds {Return "Connection Test Was Successful"} -ErrorAction Stop
-        }
-        Catch {
-            $Result = $_.Exception.Message
-        }
-
-        Write-Host $Result
-
-        If($Result -eq "Connection Test Was Successful")
-        {
-            $Result = Invoke-Command -VMName $VMName -Credential $Creds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;} -ErrorAction Stop
-            If($Result)
-            {
-                Write-Host $Result 
-                $Connected = $True
-            }
-            else
-            {
-                $Connected = $false
-            }
-        }
-        ElseIf($Result -eq "The credential is invalid.") {
-            Write-Warning "Retying Credentials again."
-            $Connected = $False
-            Start-Sleep -Seconds 10
+            $timeElapsed = $(Get-Date) - $startTime
+            if ($($timeElapsed).TotalMinutes -ge 10) {
+                Write-Host "Could not connect to PS Direct after 10 minutes"
+                throw
+            } 
+            Start-Sleep -sec 1
+            $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock { $True } -ErrorAction SilentlyContinue
+            If($Type -eq 'Domain') {
+                 Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock {  
+                    do {
+                        Write-Host "." -NoNewline -ForegroundColor Gray
+                        Start-Sleep -Seconds 5
+                        # query AD for the local computer
+                        Get-ADComputer $env:COMPUTERNAME | Out-Null
+                    } until ($?) # exits the loop if last call was successful
+                    Write-Host "succeeded."
+                }
+            }        
         } 
-        ElseIf($Result -eq "The virtual machine $($VMName) is not in running state.") {
-            $VMState = (Get-VM -Name $VMName).State
-            if($VMState -eq "Off") {
-                write-Host "VM Not Running. Starting VM."
-                Start-VM -Name $VMName
-            }
-            else {
-                Write-Host "Waiting for VM to fully start."
-            }
-            Start-Sleep -Seconds 5
-        }
-        Else {
-            Write-Host "Retrying in 5 seconds."
-            Start-Sleep -Seconds 5
-        }
-        Write-Host "Connected: $($Connected)"
+        until ($psReady)
     }
-    until ($Connected)
-}
-Catch {
-    Write-Warning $_.Exception.Message
-    break;
-}
 
-    Return $Connected
+    Catch {
+        Write-Warning $_.Exception.Message
+        break;
+    }
+
+    Return $psReady
 }
