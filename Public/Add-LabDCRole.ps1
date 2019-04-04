@@ -73,7 +73,7 @@ $SBScriptTemplateBegin = {
     
     $_LogFile = "$($_LogPath)\Transcript.log";
     
-    Start-Transcript $_LogFile;
+    Start-Transcript $_LogFile -Append -NoClobber;
     Write-Host "Logging to $_LogFile";
     
     #region Do Stuff Here
@@ -223,12 +223,12 @@ $SBInstallCA = {
         $VM | Stop-VM -Force
         Invoke-LabCommand -FilePath "$($LabScriptPath)\AddDCFeatures.ps1" -MessageText "AddDCFeatures" -SessionType Local -VMID $VM.VMId
         Invoke-LabCommand -FilePath "$($LabScriptPath)\DCPromo.ps1" -MessageText "DCPromo" -SessionType Local -VMID $VM.VMId
-        Checkpoint-VM -VM $VM -SnapshotName "DC Promo Complete"
+        #Checkpoint-VM -VM $VM -SnapshotName "DC Promo Complete"
         #endregion
         #start-sleep -seconds 120
         while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
         Invoke-LabCommand -FilePath "$($LabScriptPath)\ConfigureDHCP.ps1" -MessageText "ConfigureDHCP" -SessionType Domain -VMID $VM.VMId
-        Checkpoint-VM -VM $VM -SnapshotName "DHCP Configured"
+        #Checkpoint-VM -VM $VM -SnapshotName "DHCP Configured"
         
         while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
         Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId

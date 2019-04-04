@@ -14,7 +14,7 @@ Function New-LabEnv {
     #New-LabUnattendXML
     #New-LabRefVHDX -BuildType "Server"
 
-    New-LabSwitch
+    #New-LabSwitch
     ForEach ($VM in $Script:SvrVMs)
     {
         $Script:VMConfig = @{}
@@ -29,16 +29,16 @@ Function New-LabEnv {
         $VMConfig["StartupMemory"] = $Script:VMConfig.StartupMemory -as [UInt64]
 
         Write-Host $VM.VMName
-        New-LabVM
+        #New-LabVM
 
         $Roles = $VM.VMRoles.Split(",")
         If($Roles.Contains("DC"))
         {
-            Add-LabDCRole
+            #Add-LabDCRole
         }
         If($Roles.Contains("SQL"))
         {
-            Add-LabSQLRole
+            #Add-LabSQLRole
         }
         If($Roles.Contains("CA"))
         {
@@ -47,7 +47,7 @@ Function New-LabEnv {
         }
         If($Roles.Contains("CM"))
         {
-           $VMConfig["ConfigMgrMediaPath"] = Switch($Script:VMConfig.CMVersion) {"TP" {$base.PathConfigMgrTP; break;} "CB" {$base.PathConfigMgrCB; break;}}
+           $VMConfig["ConfigMgrMediaPath"] = Switch($Script:VMConfig.CMVersion) {"TP" {$base.PathConfigMgrTP; break;} "Prod" {$base.PathConfigMgrCB; break;}}
            $VMConfig["ConfigMgrPrereqPath"] = "$($Script:VMConfig.ConfigMgrMediaPath)\Prereqs"
            Add-LabCMRole
         }
@@ -59,5 +59,7 @@ Function New-LabEnv {
         {
             #Add-LabRRASRole
         }
+
+        Add-LabAdditionalApps
     }
 }

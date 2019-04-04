@@ -70,6 +70,7 @@ Function Add-LabCMRole {
 
     $VM = Get-VM -Name $VMName
 
+
     if((Get-VM -Name $VMName).State -eq "Running") {
         Stop-VM -Name $VMName
     }
@@ -90,7 +91,7 @@ Function Add-LabCMRole {
     
 
     #region INIFile
-    if ($ConfigMgrVersion -eq "CB") {
+    if ($ConfigMgrVersion -eq "Prod") {
         $HashIdent = @{'action' = 'InstallPrimarySite'
         }
         $SiteName = "Current Branch $($ConfigMgrSiteCode)"
