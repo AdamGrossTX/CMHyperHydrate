@@ -210,7 +210,7 @@ Function New-LabRefVHDX {
                 $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
-            "Worksation" {
+            "Workstation" {
                 switch($Script:WSRef.RefSrcType)
                 {
                     "ISO" {$SourcePath = $Script:base.WinISO; break;}
@@ -225,7 +225,7 @@ Function New-LabRefVHDX {
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
                 $VHDPath = "$($script:Base.WksVHDX)";
-                $UnattendPath = "$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
+                $UnattendPath = $Null#"$($script:base.LabPath)\$($Script:base.ENVToBuild)\Unattend.XML";
                 break;
             }
             default {$null; break;}

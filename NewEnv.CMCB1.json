@@ -32,11 +32,11 @@
         {
             "RefID"         : "1809",
             "RefName"       : "Windows 10 1809",
-            "RefVHDXName"   : "Windows1809Ref.vhdx",
+            "RefVHDXName"   : "Windows1809AP.vhdx",
             "RefIndex"      : "3",
             "RefSrcType"    : "ISO",
-            "RefHVDSize"    : "50gb",
-            "RefHFeature"   : "NetFx3",
+            "RefHVDSize"    : "100gb",
+            "RefHFeature"   : "",
             "RefPackage"    : "",
             "RefDriver"     : ""
         }
@@ -72,6 +72,21 @@
                     "Generation"    : "2",
                     "AutoStartup"   : "1"
                 }
+            
+            ],
+            "WorkstationVMList": [
+                {
+                    "VMID"          : "VM1",
+                    "VMName"        : "WS01",
+                    "VMOS"          : "Workstation",
+                    "VMRoles"       : "",
+                    "EnableSnapShot": "0",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "2",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                }
+            
             ]
         }
     ]

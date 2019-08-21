@@ -3,12 +3,11 @@ function New-LabCMSQLSettingsINI {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName = $Script:Env.EnvNetBios,
+        $DomainNetBiosName = "INFRAMARK.COM",
 
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds    
+        $UserName = "Username",
+        $Password = "Password"
+    
     )
     $SQLHash = @{'ACTION'                = '"Install"';
         'SUPPRESSPRIVACYSTATEMENTNOTICE' = '"TRUE"';
@@ -40,10 +39,10 @@ function New-LabCMSQLSettingsINI {
         'FILESTREAMLEVEL'                = '"0"';
         'ENABLERANU'                     = '"FALSE"';
         'SQLCOLLATION'                   = '"SQL_Latin1_General_CP1_CI_AS"';
-        'SQLSVCACCOUNT'                  = """$($DomainAdminCreds.UserName)"""; 
-        'SQLSVCPASSWORD'                 = """$($DomainAdminCreds.GetNetworkCredential().Password)""" 
+        'SQLSVCACCOUNT'                  = """$($UserName)"""; 
+        'SQLSVCPASSWORD'                 = """$($Password)""" 
         'SQLSVCINSTANTFILEINIT'          = '"FALSE"';
-        'SQLSYSADMINACCOUNTS'            = """$($DomainAdminCreds.UserName)"" ""$($DomainNetBiosName)\Domain Users"""; 
+        'SQLSYSADMINACCOUNTS'            = """$($UserName)"" ""$($DomainNetBiosName)\Domain Users"""; 
         'SQLTEMPDBFILECOUNT'             = '"1"';
         'SQLTEMPDBFILESIZE'              = '"8"';
         'SQLTEMPDBFILEGROWTH'            = '"64"';
@@ -67,3 +66,5 @@ function New-LabCMSQLSettingsINI {
     }
     return $SQLInstallINI
 }
+
+New-LabCMSQLSettingsINI
