@@ -21,7 +21,7 @@ param(
 
     #region Do Stuff Here
     Add-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools
-    Install-AdcsCertificationAuthority –CAType EnterpriseRootCA –KeyLength 2048 –HashAlgorithm SHA1 –CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -ValidityPeriod Years -ValidityPeriodUnits 5 -Force -confirm:$false
+    Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -KeyLength 2048 -HashAlgorithm SHA1 -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -ValidityPeriod Years -ValidityPeriodUnits 5 -Force -confirm:$false
     #endregion
 
     Stop-Transcript

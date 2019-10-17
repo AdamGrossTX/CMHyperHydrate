@@ -115,8 +115,8 @@ Function New-LabRefVHDX {
         [Parameter()]
         [Alias("Unattend")]
         [string]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({ Test-Path $(Resolve-Path $_) })]
+        #[ValidateNotNullOrEmpty()]
+        #[ValidateScript({ Test-Path $(Resolve-Path $_) })]
         $UnattendPath,
 
         [Parameter()]

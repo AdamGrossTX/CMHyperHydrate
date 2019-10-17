@@ -8,13 +8,14 @@ Function New-LabEnv {
     Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
    
     $Script:Base.ClientLogPath
-    
+    <#
     #Uncomment for first run
     #New-LabUnattendXML
+    #New-LabRefVHDX -BuildType Server
     #New-LabRefVHDX -BuildType Workstation
+    #>
 
     #New-LabSwitch
-    <#
     ForEach ($VM in $Script:SvrVMs)
     {
         $Script:VMConfig = @{}
@@ -29,6 +30,7 @@ Function New-LabEnv {
         $VMConfig["StartupMemory"] = $Script:VMConfig.StartupMemory -as [UInt64]
 
         Write-Host $VM.VMName
+        
         #New-LabVM
 
         $Roles = $VM.VMRoles.Split(",")
@@ -36,6 +38,7 @@ Function New-LabEnv {
         {
             #Add-LabDCRole
         }
+        
         If($Roles.Contains("SQL"))
         {
             #Add-LabSQLRole
@@ -62,7 +65,7 @@ Function New-LabEnv {
 
         Add-LabAdditionalApps
     }
-#>
+
     ForEach ($VM in $Script:WksVMs)
     {
         $Script:VMConfig = @{}
@@ -80,5 +83,5 @@ Function New-LabEnv {
         New-LabVM
     }
 
-    #>
+
 }

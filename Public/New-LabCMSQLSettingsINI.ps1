@@ -3,12 +3,19 @@ function New-LabCMSQLSettingsINI {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName = "INFRAMARK.COM",
+        $DomainNetBiosName =  $Script:Env.EnvFQDN,
 
-        $UserName = "Username",
-        $Password = "Password"
-    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $UserName = $Script:base.DomainAdminName,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Password = $Script:Env.EnvAdminPW
     )
+
     $SQLHash = @{'ACTION'                = '"Install"';
         'SUPPRESSPRIVACYSTATEMENTNOTICE' = '"TRUE"';
         'IACCEPTROPENLICENSETERMS'       = '"TRUE"';
@@ -66,5 +73,3 @@ function New-LabCMSQLSettingsINI {
     }
     return $SQLInstallINI
 }
-
-New-LabCMSQLSettingsINI
