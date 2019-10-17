@@ -37,8 +37,8 @@ Function Add-LabSQLRole {
 
     $SBSQLInstallCmd = {
 
-        param($drive,$SQLPath)
-        Start-Process -FilePath "$($drive)Setup.exe" -Wait -ArgumentList "/ConfigurationFile=$($SQLPath)\ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS"
+        param($drive,$SQLPath)Start-Process -FilePath "$($drive)Setup.exe" -Wait -ArgumentList "/ConfigurationFile=$($SQLPath)\ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS"
+        
     }
 
     $SBSQLMemory = {
@@ -64,8 +64,8 @@ Function Add-LabSQLRole {
         start-process -FilePath "C:\windows\system32\msiexec.exe" -ArgumentList "/I $($ConfigMgrPath)\Prereqs\sqlncli.msi /QN REBOOT=ReallySuppress /l*v $($ConfigMgrPath)\SQLLog.log" -Wait
     }
     #endregion
-    Invoke-LabCommand -ScriptBlock $SBSQLINI -MessageText "SBSQLINI" -ArgumentList $SQLInstallINI,$SQLPath -VMID $VM.VMID | out-null
-    Invoke-LabCommand -ScriptBlock $SBSQLInstallCmd -MessageText "SBSQLInstallCmd" -ArgumentList $SQLDisk,$SQLPath -VMID $VM.VMID | out-null
+    #Invoke-LabCommand -ScriptBlock $SBSQLINI -MessageText "SBSQLINI" -ArgumentList $SQLInstallINI,$SQLPath -VMID $VM.VMID | out-null
+    #Invoke-LabCommand -ScriptBlock $SBSQLInstallCmd -MessageText "SBSQLInstallCmd" -ArgumentList $SQLDisk,$SQLPath -VMID $VM.VMID | out-null
     Invoke-LabCommand -ScriptBlock $SBSQLMemory -MessageText "SBSQLMemory" -VMID $VM.VMID | out-null 
     Invoke-LabCommand -ScriptBlock $SBAddWSUS -MessageText "SBAddWSUS" -VMID $VM.VMID | out-null
     Invoke-LabCommand -scriptblock $SBWSUSPostInstall -MessageText "SBWSUSPostInstall" -VMID $VM.VMID | out-null

@@ -61,7 +61,7 @@ Function Get-LabConfig {
     $base["LocalAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
     $base["LocalAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.LocalAdminName, $base.LocalAdminPassword)
 
-    $base["DomainAdminName"] = "$($Env.EnvNetBios)\Administrator"
+    $base["DomainAdminName"] = "$($Env.EnvNetBios)\$($Env.EnvAdminName)"
     $base["DomainAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
     $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
         
