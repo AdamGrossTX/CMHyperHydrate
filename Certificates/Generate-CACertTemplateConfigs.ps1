@@ -1,5 +1,6 @@
 
 $TargetDomain = "ASD"
+
 #Need to add logic to manage which servers or groups need perms
 $SourceTemplates = @(
 	"DomainControllerAuthentication(KDC)",

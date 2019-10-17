@@ -1,8 +1,6 @@
 
 #https://github.com/PowerShell/CertificateDsc/issues/54
 $Main = {
-    
-
     ForEach ($Template in $Configs) {
         Write-Host $Template.displayName
         Create-PKICertTemplate -TemplateDisplayName $Template.DisplayName  -PKIConfig $Template.Config -SecurityConfig $Template.Security
