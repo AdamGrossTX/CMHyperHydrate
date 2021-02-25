@@ -234,7 +234,9 @@ $SBInstallCA = {
         Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId
         Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
         $VM | Stop-VM -Force
-
+        $VM | Start-VM
+        start-sleep 20
+        
         Write-Host "DC Configuration Complete!"
 
         #Checkpoint-VM -VM $VM -SnapshotName "DC Configuration Complete"

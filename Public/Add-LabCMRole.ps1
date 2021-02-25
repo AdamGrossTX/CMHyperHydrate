@@ -10,6 +10,11 @@ Function Add-LabCMRole {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
+        $VMWinName = $Script:VMConfig.VMWinName,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
         $VMPath = ("$($Script:VMConfig.VMHDPath)\$($Script:VMConfig.VMHDName)"),
         
         [Parameter()]
@@ -108,14 +113,14 @@ Function Add-LabCMRole {
             'SiteCode' = "$($ConfigMgrSiteCode)";
             'SiteName' = "$($SiteName)";
             'SMSInstallDir' = 'C:\Program Files\Microsoft Configuration Manager';
-            'SDKServer' = "$($VMName).$($DomainFQDN)";
+            'SDKServer' = "$($VMWinName).$($DomainFQDN)";
             'RoleCommunicationProtocol' = "HTTPorHTTPS";
             'ClientsUsePKICertificate' = "0";
             'PrerequisiteComp' = "$($ConfigMgrPrereqsPreDL)";
             'PrerequisitePath' = "$($ConfigMgrPath)\Prereqs";
-            'ManagementPoint' = "$($VMName).$($DomainFQDN)";
+            'ManagementPoint' = "$($VMWinName).$($DomainFQDN)";
             'ManagementPointProtocol' = "HTTP";
-            'DistributionPoint' = "$($VMName).$($DomainFQDN)";
+            'DistributionPoint' = "$($VMWinName).$($DomainFQDN)";
             'DistributionPointProtocol' = "HTTP";
             'DistributionPointInstallIIS' = "0";
             'AdminConsole' = "1";
@@ -123,7 +128,7 @@ Function Add-LabCMRole {
         }
 
         $hashSQL = @{
-            'SQLServerName' = "$($VMName).$($DomainFQDN)";
+            'SQLServerName' = "$($VMWinName).$($DomainFQDN)";
             'SQLServerPort' = '1433';
             'DatabaseName' = "CM_$($ConfigMgrSiteCode)";
             'SQLSSBPort' = '4022'
@@ -133,7 +138,7 @@ Function Add-LabCMRole {
 
         $hashCloud = @{
             'CloudConnector' = "1";
-            'CloudConnectorServer' = "$($VMName).$($DomainFQDN)"
+            'CloudConnectorServer' = "$($VMWinName).$($DomainFQDN)"
         }
 
         $hashSCOpts = @{

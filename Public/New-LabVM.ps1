@@ -14,6 +14,11 @@ param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
+    $VMWinName = $Script:VMConfig.VMWinName,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string]
     $ReferenceVHDX = $Script:base.SvrVHDX,
 
     [Parameter()]
@@ -35,8 +40,7 @@ param(
     [UInt64]
     [ValidateNotNullOrEmpty()]
     [ValidateRange(512MB, 64TB)]
-    $StartupMemory = 16gb,
-    #$Script:VMConfig.StartupMemory,
+    $StartupMemory = $Script:VMConfig.StartupMemory,
 
     [Parameter()]
     [int]
@@ -108,7 +112,7 @@ param(
         }
 
         $VM = Get-VM -Name $VMName
-        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMName -VMID $VM.VMID
+        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID
 
         #Checkpoint-VM -VM $VM -SnapshotName "New VM Created"
 }
