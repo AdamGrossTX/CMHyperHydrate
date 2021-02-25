@@ -34,7 +34,7 @@ Function Add-LabCARole {
 
     )
 
-    $LabScriptPath = "$($LabPath)$($Script:Base.VMScriptPath)"
+    $LabScriptPath = "$($LabPath)$($VMName)\$($VMName)"
     
     If(!(Test-Path -Path "$($LabScriptPath)" -ErrorAction SilentlyContinue))
     {

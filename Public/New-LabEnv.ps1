@@ -11,11 +11,11 @@ Function New-LabEnv {
     
     #Uncomment for first run
     New-LabUnattendXML
-    #New-LabRefVHDX -BuildType Server
+    New-LabRefVHDX -BuildType Server
     New-LabRefVHDX -BuildType Workstation
     
 
-    #New-LabSwitch
+    New-LabSwitch
     ForEach ($VM in $Script:SvrVMs)
     {
         $Script:VMConfig = @{}
@@ -30,7 +30,7 @@ Function New-LabEnv {
         $VMConfig["AutoStartup"] = If($Script:VMConfig.AutoStartup -eq 1) {$true} else {$false}
         $VMConfig["StartupMemory"] = [int64]$Script:VMConfig.StartupMemory.Replace('gb','') * 1GB
 
-        #Write-Host $VM.VMName
+        Write-Host $VM.VMName
         New-LabVM
         
         $Roles = $VM.VMRoles.Split(",")

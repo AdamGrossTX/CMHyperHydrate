@@ -34,7 +34,7 @@ Function Join-LabDomain {
 
     )
 
-    $LabScriptPath = "$($LabPath)$($Script:Base.VMScriptPath)"
+    $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     
     If(!(Test-Path -Path "$($LabScriptPath)" -ErrorAction SilentlyContinue))
     {
@@ -98,8 +98,18 @@ $JoinDomain | Out-File "$($LabScriptPath)\JoinDomain.ps1"
         $VM = Get-VM -VM $VMName
         $VM | Start-VM
         start-sleep 20
+
+        $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
+
+        While (!(Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+        
+        Foreach($Script in $Scripts) {
+            Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+        }
+
         $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
         $ClientScriptPath = "C:$($ScriptPath)\"
+
         Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
         Write-Host "Domain Join Complete!"
 
