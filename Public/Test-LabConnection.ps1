@@ -68,7 +68,8 @@ Function Test-LabConnection {
                         Write-Host "." -NoNewline -ForegroundColor Gray
                         Start-Sleep -Seconds 5
                         # query AD for the local computer
-                        Get-ADComputer $env:COMPUTERNAME | Out-Null
+                        #Get-ADComputer $env:COMPUTERNAME | Out-Null
+                        Get-WMIObject Win32_ComputerSystem | Out-Null
                     } until ($?) # exits the loop if last call was successful
                     Write-Host "succeeded."
                 }

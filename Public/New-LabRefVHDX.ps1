@@ -251,7 +251,7 @@ Function New-LabRefVHDX {
             Install-Module -name 'Convert-WindowsImage' -Scope AllUsers
         }
         else {
-            Update-Module -Name 'Convert-WindowsImage'    
+            #Update-Module -Name 'Convert-WindowsImage'    
         }
         Import-module -name 'Convert-Windowsimage'
         #end region

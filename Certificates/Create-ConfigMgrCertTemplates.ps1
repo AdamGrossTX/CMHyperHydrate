@@ -9,7 +9,7 @@ $Main = {
 
 $Configs = @(
 	@{
-		"DisplayName" = "Domain Controller Authentication (KDC) - Test"
+		"DisplayName" = "Domain Controller Authentication (KDC)"
 		"Config" = [hashtable]@{
 			"flags" = "131168"
 			"pKIDefaultKeySpec" = "1"
@@ -41,7 +41,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -49,7 +49,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -57,7 +57,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Adam"
+				"IdentityReference" = "CPDesk\Desktop Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -81,7 +81,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Read-only Domain Controllers"
+				"IdentityReference" = "CPDesk\Enterprise Read-only Domain Controllers"
 				"ActiveDirectoryRights" = "ReadProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "a05b8cc2-17bc-4802-a710-e7c15ab866a2"
@@ -89,7 +89,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Read-only Domain Controllers"
+				"IdentityReference" = "CPDesk\Enterprise Read-only Domain Controllers"
 				"ActiveDirectoryRights" = "ReadProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -97,7 +97,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -105,7 +105,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Controllers"
+				"IdentityReference" = "CPDesk\Domain Controllers"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "a05b8cc2-17bc-4802-a710-e7c15ab866a2"
@@ -113,7 +113,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Controllers"
+				"IdentityReference" = "CPDesk\Domain Controllers"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -121,7 +121,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -131,7 +131,7 @@ $Configs = @(
 		)
 	}
 	@{
-		"DisplayName" = "ConfigMgr Web Server Certificate - Test"
+		"DisplayName" = "ConfigMgr Web Server Certificate"
 		"Config" = [hashtable]@{
 			"flags" = "131649"
 			"pKIDefaultKeySpec" = "1"
@@ -162,7 +162,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Administrator"
+				"IdentityReference" = "CPDesk\Administrator"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -170,7 +170,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -178,7 +178,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -186,7 +186,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\CM01$"
+				"IdentityReference" = "CPDesk\CM01$"
 				"ActiveDirectoryRights" = "ReadProperty, GenericExecute"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -194,7 +194,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\ConfigMgr Site Servers"
+				"IdentityReference" = "CPDesk\ConfigMgr Site Servers"
 				"ActiveDirectoryRights" = "ReadProperty, GenericExecute"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -202,7 +202,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -210,7 +210,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -218,7 +218,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\CM01$"
+				"IdentityReference" = "CPDesk\CM01$"
 				"ActiveDirectoryRights" = "ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -226,7 +226,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\ConfigMgr Site Servers"
+				"IdentityReference" = "CPDesk\ConfigMgr Site Servers"
 				"ActiveDirectoryRights" = "ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -236,7 +236,7 @@ $Configs = @(
 		)
 	}
 	@{
-		"DisplayName" = "ConfigMgr Distribution Point Certificate - Test"
+		"DisplayName" = "ConfigMgr Distribution Point Certificate"
 		"Config" = [hashtable]@{
 			"flags" = "131680"
 			"pKIDefaultKeySpec" = "1"
@@ -267,7 +267,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Administrator"
+				"IdentityReference" = "CPDesk\Administrator"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -275,7 +275,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -283,7 +283,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -291,7 +291,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\CM01$"
+				"IdentityReference" = "CPDesk\CM01$"
 				"ActiveDirectoryRights" = "ReadProperty, GenericExecute"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -299,7 +299,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\ConfigMgr Site Servers"
+				"IdentityReference" = "CPDesk\ConfigMgr Site Servers"
 				"ActiveDirectoryRights" = "ReadProperty, GenericExecute"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -307,7 +307,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -315,7 +315,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -323,7 +323,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\CM01$"
+				"IdentityReference" = "CPDesk\CM01$"
 				"ActiveDirectoryRights" = "ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -331,7 +331,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\ConfigMgr Site Servers"
+				"IdentityReference" = "CPDesk\ConfigMgr Site Servers"
 				"ActiveDirectoryRights" = "ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -341,7 +341,7 @@ $Configs = @(
 		)
 	}
 	@{
-		"DisplayName" = "ConfigMgr Client Certificate - Test"
+		"DisplayName" = "ConfigMgr Client Certificate"
 		"Config" = [hashtable]@{
 			"flags" = "131680"
 			"pKIDefaultKeySpec" = "1"
@@ -372,7 +372,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Administrator"
+				"IdentityReference" = "CPDesk\Administrator"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -380,7 +380,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -388,7 +388,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Computers"
+				"IdentityReference" = "CPDesk\Domain Computers"
 				"ActiveDirectoryRights" = "ReadProperty, GenericExecute"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -396,7 +396,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "CreateChild, DeleteChild, Self, WriteProperty, DeleteTree, Delete, GenericRead, WriteDacl, WriteOwner"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "00000000-0000-0000-0000-000000000000"
@@ -404,7 +404,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Admins"
+				"IdentityReference" = "CPDesk\Domain Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -412,7 +412,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Computers"
+				"IdentityReference" = "CPDesk\Domain Computers"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
@@ -420,7 +420,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Domain Computers"
+				"IdentityReference" = "CPDesk\Domain Computers"
 				"ActiveDirectoryRights" = "ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "a05b8cc2-17bc-4802-a710-e7c15ab866a2"
@@ -428,7 +428,7 @@ $Configs = @(
 				"InheritedObjectType" = "00000000-0000-0000-0000-000000000000"
 			},
 			@{
-				"IdentityReference" = "ASD\Enterprise Admins"
+				"IdentityReference" = "CPDesk\Enterprise Admins"
 				"ActiveDirectoryRights" = "ReadProperty, WriteProperty, ExtendedRight"
 				"AccessControlType" = "Allow"
 				"ObjectType" = "0e10c968-78fb-11d2-90d4-00c04f79dc55"
