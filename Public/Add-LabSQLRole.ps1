@@ -19,6 +19,11 @@ Function Add-LabSQLRole {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
+        [pscredential]
+        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [string]
         $ScriptPath = $Script:Base.VMScriptPath,
 
@@ -35,6 +40,7 @@ Function Add-LabSQLRole {
     )
 
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
+    $ClientScriptPath = "C:$($ScriptPath)"
     
     if(!(Test-Path -Path "$($LabScriptPath)" -ErrorAction SilentlyContinue)){
         New-Item -Path "$($LabScriptPath)" -ItemType Directory -ErrorAction SilentlyContinue
@@ -45,7 +51,6 @@ Function Add-LabSQLRole {
     Add-VMDvdDrive -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
     Set-VMDvdDrive -Path $SQLISO -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
     
-    $SQLDisk = Invoke-LabCommand -ScriptBlock {(Get-PSDrive -PSProvider FileSystem | where-object {$_.name -ne "c"}).root} -VMID $VM.VMID -MessageText "GetPSDrive" 
     $SQLPath = "C:$($VMDataPath)\SQL"
     $SQLInstallINI = New-LabCMSQLSettingsINI
 
@@ -94,14 +99,13 @@ $SBSQLIni = {
 $SBSQLInstallCmdParams = @"
     param(
         `$_LogPath = "$($LogPath)",
-        `$_drive = "$($drive)",
-        `$_SQLPath = "$($SQLPath)"
+        `$_ClientScriptPath = "$($ClientScriptPath)"
     )
 "@
 
 $SBSQLInstallCmd = {
-    param($drive,$SQLPath)
-    Start-Process -FilePath "$($_drive)Setup.exe" -Wait -ArgumentList "/ConfigurationFile=$($_SQLPath)\ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS"
+    $_SQLDisk = (Get-PSDrive -PSProvider FileSystem | where-object {$_.name -ne "c"}).root
+    Start-Process -FilePath "$($_SQLDisk)Setup.exe" -Wait -ArgumentList "/ConfigurationFile=$($_ClientScriptPath)\ConfigurationFile.INI /IACCEPTSQLSERVERLICENSETERMS"
 }
 
 $SBSQLMemory = {
@@ -122,12 +126,14 @@ $SBWSUSPostInstall = {
     Start-Process -filepath "C:\Program Files\Update Services\Tools\WsusUtil.exe" -ArgumentList "postinstall CONTENT_DIR=C:\WSUS SQL_INSTANCE_NAME=$env:COMPUTERNAME" -Wait
 }
 
+$SQLIni += $SQLInstallINI.ToString()
+$SQLIni | Out-File "$($LabScriptPath)\ConfigurationFile.INI"
 
-$SQLIni += $SBSQLIniParams
-$SQLIni += $SBScriptTemplateBegin.ToString()
-$SQLIni += $SBSQLIni.ToString()
-$SQLIni += $SCScriptTemplateEnd.ToString()
-$SQLIni | Out-File "$($LabScriptPath)\SQLIni.ps1"
+#$SQLIni += $SBSQLIniParams
+#$SQLIni += $SBScriptTemplateBegin.ToString()
+#$SQLIni += $SBSQLIni.ToString()
+#$SQLIni += $SCScriptTemplateEnd.ToString()
+#$SQLIni | Out-File "$($LabScriptPath)\SQLIni.ps1"
 
 $SQLInstallCmd += $SBSQLInstallCmdParams
 $SQLInstallCmd += $SBScriptTemplateBegin.ToString()
@@ -160,19 +166,17 @@ $VM | Start-VM
 start-sleep 10
 $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
-While (!(Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+While (!(Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
 
 Foreach($Script in $Scripts) {
-    Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+    Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "$($ClientScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
 }
 
-$ClientScriptPath = "C:$($ScriptPath)\"
-
-Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLIni.ps1" -MessageText "SQLIni" -SessionType Local -VMID $VM.VMId
-Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLInstallCmd.ps1" -MessageText "SQLInstallCmd" -SessionType Local -VMID $VM.VMId
-Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLMemory.ps1" -MessageText "SQLMemory" -SessionType Local -VMID $VM.VMId
-Invoke-LabCommand -FilePath "$($LabScriptPath)\AddWSUS.ps1" -MessageText "AddWSUS" -SessionType Local -VMID $VM.VMId
-Invoke-LabCommand -FilePath "$($LabScriptPath)\WSUSPostInstall.ps1" -MessageText "WSUSPostInstall" -SessionType Local -VMID $VM.VMId
+#Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLIni.ps1" -MessageText "SQLIni" -SessionType Domain -VMID $VM.VMId
+Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLInstallCmd.ps1" -MessageText "SQLInstallCmd" -SessionType Domain -VMID $VM.VMId
+Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLMemory.ps1" -MessageText "SQLMemory" -SessionType Domain -VMID $VM.VMId
+Invoke-LabCommand -FilePath "$($LabScriptPath)\AddWSUS.ps1" -MessageText "AddWSUS" -SessionType Domain -VMID $VM.VMId
+Invoke-LabCommand -FilePath "$($LabScriptPath)\WSUSPostInstall.ps1" -MessageText "WSUSPostInstall" -SessionType Domain -VMID $VM.VMId
 
 Set-VMDvdDrive -VMName $VMName -Path $null
 

@@ -86,11 +86,15 @@ $SBInstallCA = {
         start-sleep 10
         $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
+        While (!(Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+        
         Foreach($Script in $Scripts) {
             Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
         }
-        $ClientScriptPath = "C:$($ScriptPath)\"
         Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
+
+        #TODO  Create-PKICertTemplate
+
         Write-Host "CA Configuration Complete!"
 
 

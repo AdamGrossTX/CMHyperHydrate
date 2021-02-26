@@ -30,7 +30,17 @@ Function Join-LabDomain {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $Script:Base.LabPath,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DomainAdminName = "$($Script:Env.EnvNetBios)\Administrator",
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DomainAdminPassword = $Script:Env.EnvAdminPW
 
     )
 
@@ -76,8 +86,8 @@ $SBJoinDomainParams = @"
     (
         `$_LogPath = "$($LogPath)",
         `$_FQDN = "$($DomainFQDN)",
-        `$_DomainAdminName = "$($Script:Env.EnvNetBios)\Administrator",
-        `$_DomainAdminPassword = "$($Script:Env.EnvAdminPW)"
+        `$_DomainAdminName = "$($DomainAdminName)",
+        `$_DomainAdminPassword = "$($DomainAdminPassword)"
     )
 "@
 
@@ -108,8 +118,6 @@ $JoinDomain | Out-File "$($LabScriptPath)\JoinDomain.ps1"
         }
 
         $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
-        $ClientScriptPath = "C:$($ScriptPath)\"
-
         Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
         Write-Host "Domain Join Complete!"
 
