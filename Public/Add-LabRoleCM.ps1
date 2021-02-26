@@ -375,7 +375,10 @@ function Add-LabRoleCM {
     $CreateINI | Out-File "$($LabScriptPath)\CMinstall.ini" -Force
     Copy-VMFile -VM $VM -SourcePath "$($LabScriptPath)\CMinstall.ini" -DestinationPath "$($ClientScriptPath)\CMinstall.ini" -CreateFullPath -FileSource Host -Force
 
+    #TODO https://systemmanagement.ro/2018/08/13/install-windowsfeature-web-net-ext-failed-source-files-could-not-be-found/
     Invoke-LabCommand -FilePath "$($LabScriptPath)\AddFeatures.ps1" -MessageText "AddFeatures" -SessionType Domain -VMID $VM.VMId
+    Read-Host -Prompt "Fix Features before Proceeding"
+
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ADK.ps1" -MessageText "ADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\WinPEADK.ps1" -MessageText "WinPEADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ExtSchema.ps1" -MessageText "ExtSchema" -SessionType Domain -VMID $VM.VMId
