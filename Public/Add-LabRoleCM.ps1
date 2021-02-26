@@ -1,6 +1,6 @@
-Function Add-LabCMRole {
+function Add-LabRoleCM {
     [cmdletBinding()]
-    param(
+    param (
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -35,12 +35,12 @@ Function Add-LabCMRole {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName = $Script:Env.EnvNetBios,
+        $DomainNetBiosName = $Script:labEnv.EnvNetBios,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:Env.EnvFQDN,
+        $DomainFQDN = $Script:labEnv.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -89,17 +89,45 @@ Function Add-LabCMRole {
 
     )
 
-    $LabScriptPath = "$($LabPath)$($VMName)\$($VMName)"
+    #region Standard Setup
+    $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
-
     
-    if(!(Test-Path -Path "$($LabScriptPath)" -ErrorAction SilentlyContinue)){
+    if (-not (Test-Path -Path "$($LabScriptPath)")) {
         New-Item -Path "$($LabScriptPath)" -ItemType Directory -ErrorAction SilentlyContinue
     }
 
+    $LogPath = "C:$($LogPath)"
+    $SBDefaultParams = @"
+    param
+    (
+        `$_LogPath = "$($LogPath)"
+    )
+"@
 
+    $SBScriptTemplateBegin = {
+        if (-not (Test-Path -Path $_LogPath -ErrorAction SilentlyContinue)) {
+            New-Item -Path $_LogPath -ItemType Directory -ErrorAction SilentlyContinue;
+        }
+        
+        $_LogFile = "$($_LogPath)\Transcript.log";
+        
+        Start-Transcript $_LogFile -Append -NoClobber;
+        Write-Host "Logging to $_LogFile";
+        
+        #region Do Stuff Here
+    }
+        
+    $SCScriptTemplateEnd = {
+        #endregion
+        Stop-Transcript
+    }
+    
+    #endregion
+
+    #region Copy media to VM
     $VM = Get-VM -Name $VMName
-    if((Get-VM -Name $VMName).State -eq "Running") {
+    if ((Get-VM -Name $VMName).State -eq "Running") {
         Stop-VM -Name $VMName
     }
 
@@ -112,130 +140,100 @@ Function Add-LabCMRole {
     Copy-Item -Path $ADKMedia -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
     Copy-Item -Path $ADKWinPEMedia -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
     Dismount-VHD $VMPath
-
-
-$LogPath = "C:$($LogPath)"
-$SBDefaultParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)"
-    )
-"@
-
-$SBScriptTemplateBegin = {
-    If(!(Test-Path -Path $_LogPath -ErrorAction SilentlyContinue))
-    {
-        New-Item -Path $_LogPath -ItemType Directory -ErrorAction SilentlyContinue;
-    }
-    
-    $_LogFile = "$($_LogPath)\Transcript.log";
-    
-    Start-Transcript $_LogFile -Append -NoClobber;
-    Write-Host "Logging to $_LogFile";
-    
-    #region Do Stuff Here
-}
-     
-$SCScriptTemplateEnd = {
     #endregion
 
-    Stop-Transcript
-}
     
-#region ScriptBlocks
-
-$SBInstallSQLNativeClientParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_ConfigMgrPath = "C:\Data\ConfigMgr"
-    )
+    #region Script Blocks
+    $SBInstallSQLNativeClientParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_ConfigMgrPath = "C:\Data\ConfigMgr"
+        )
 "@
 
-$SBInstallSQLNativeClient = {
-    start-process -FilePath "C:\windows\system32\msiexec.exe" -ArgumentList "/I $($_ConfigMgrPath)\Prereqs\sqlncli.msi /QN REBOOT=ReallySuppress /l*v $($ConfigMgrPath)\SQLLog.log" -Wait
-}
+    $SBInstallSQLNativeClient = {
+        start-process -FilePath "C:\windows\system32\msiexec.exe" -ArgumentList "/I $($_ConfigMgrPath)\Prereqs\sqlncli.msi /QN REBOOT=ReallySuppress /l*v $($ConfigMgrPath)\SQLLog.log" -Wait
+    }
 
-$SBGetSQLSettings = {
-    [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-    (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
-}
+    $SBGetSQLSettings = {
+        [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
+        (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
+    }
 
-$SBAddFeatures = {
-    Add-WindowsFeature BITS, BITS-IIS-Ext, BITS-Compact-Server, Web-Server, Web-WebServer, Web-Common-Http, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-App-Dev, Web-Net-Ext, Web-Net-Ext45, Web-ASP, Web-Asp-Net, Web-Asp-Net45, Web-CGI, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Health, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Performance, Web-Stat-Compression, Web-Security, Web-Filtering, Web-Basic-Auth, Web-IP-Security, Web-Url-Auth, Web-Windows-Auth, Web-Mgmt-Tools, Web-Mgmt-Console, Web-Mgmt-Compat, Web-Metabase, Web-Lgcy-Mgmt-Console, Web-Lgcy-Scripting, Web-WMI, Web-Scripting-Tools, Web-Mgmt-Service, RDC;
-}
+    $SBAddFeatures = {
+        Add-WindowsFeature BITS, BITS-IIS-Ext, BITS-Compact-Server, Web-Server, Web-WebServer, Web-Common-Http, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-App-Dev, Web-Net-Ext, Web-Net-Ext45, Web-ASP, Web-Asp-Net, Web-Asp-Net45, Web-CGI, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Health, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Performance, Web-Stat-Compression, Web-Security, Web-Filtering, Web-Basic-Auth, Web-IP-Security, Web-Url-Auth, Web-Windows-Auth, Web-Mgmt-Tools, Web-Mgmt-Console, Web-Mgmt-Compat, Web-Metabase, Web-Lgcy-Mgmt-Console, Web-Lgcy-Scripting, Web-WMI, Web-Scripting-Tools, Web-Mgmt-Service, RDC;
+    }
 
-$SBADKParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_ADKPath = "C:\Data\ADK"
-    )
+    $SBADKParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_ADKPath = "C:\Data\ADK"
+        )
 "@
-$SBADK = {
-    $_SetupSwitches = "/Features OptionId.DeploymentTools OptionId.ImagingAndConfigurationDesigner OptionId.ICDConfigurationDesigner OptionId.UserStateMigrationTool /norestart /quiet /ceip off"
-    Start-Process -FilePath "$($_ADKPath)\adksetup.exe" -ArgumentList $_SetupSwitches -NoNewWindow -Wait
-}
+    $SBADK = {
+        $_SetupSwitches = "/Features OptionId.DeploymentTools OptionId.ImagingAndConfigurationDesigner OptionId.ICDConfigurationDesigner OptionId.UserStateMigrationTool /norestart /quiet /ceip off"
+        Start-Process -FilePath "$($_ADKPath)\adksetup.exe" -ArgumentList $_SetupSwitches -NoNewWindow -Wait
+    }
 
-$SBWinPEADKParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_ADKWinPEPath = "C:\Data\ADKWinPE"
-    )
+    $SBWinPEADKParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_ADKWinPEPath = "C:\Data\ADKWinPE"
+        )
 "@
-$SBWinPEADK = {
-    $_SetupSwitches = "/Features OptionId.WindowsPreinstallationEnvironment /norestart /quiet /ceip off"    
-    Start-Process -FilePath "$($_ADKWinPEPath)\adkwinpesetup.exe" -ArgumentList $_SetupSwitches -NoNewWindow -Wait
-    Restart-Computer -Force
-}
+    $SBWinPEADK = {
+        $_SetupSwitches = "/Features OptionId.WindowsPreinstallationEnvironment /norestart /quiet /ceip off"    
+        Start-Process -FilePath "$($_ADKWinPEPath)\adkwinpesetup.exe" -ArgumentList $_SetupSwitches -NoNewWindow -Wait
+        Restart-Computer -Force
+    }
 
-$SBExtSchemaParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_ConfigMgrPath = "C:\Data\ConfigMgr"
-    )
+    $SBExtSchemaParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_ConfigMgrPath = "C:\Data\ConfigMgr"
+        )
 "@
-$SBExtSchema = {
-    Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\extadsch.exe" -wait
-}
+    $SBExtSchema = {
+        Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\extadsch.exe" -wait
+    }
 
-$SBInstallCMParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_ConfigMgrPath = "C:\Data\ConfigMgr",
-        `$_ClientScriptPath = "$($ClientScriptPath)"
-    )
+    $SBInstallCMParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_ConfigMgrPath = "C:\Data\ConfigMgr",
+            `$_ClientScriptPath = "$($ClientScriptPath)"
+        )
 "@
-$SBInstallCM = {
-    Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\setup.exe" -ArgumentList "/script $($_ClientScriptPath)\CMinstall.ini" -Wait
-}
+    $SBInstallCM = {
+        Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\setup.exe" -ArgumentList "/script $($_ClientScriptPath)\CMinstall.ini" -Wait
+    }
 
-
-$SBCMExtrasParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_sitecode = "$($sitecode)",
-        `$_DomainDN = "$($DomainDN)",
-    )
+    $SBCMExtrasParams = @"
+        param
+        (
+            `$_LogPath = "$($LogPath)",
+            `$_sitecode = "$($sitecode)",
+            `$_DomainDN = "$($DomainDN)",
+        )
 "@
-$SBCMExtras = {
-    import-module "$(($env:SMS_ADMIN_UI_PATH).remove(($env:SMS_ADMIN_UI_PATH).Length -4, 4))ConfigurationManager.psd1"; 
-    if($null -eq (Get-PSDrive -Name $_SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {New-PSDrive -Name $_SiteCode -PSProvider CMSite -Root $env:COMPUTERNAME}
-    Set-Location "$((Get-PSDrive -PSProvider CMSite).name)`:"; 
-    #New-CMBoundary -Type IPSubnet -Value "$($ipsub)/24" -name $Subnetname;
-    New-CMBoundary -DisplayName "DefaultBoundary" -BoundaryType ADSite -Value "Default-First-Site-Name"
-    New-CMBoundaryGroup -name "DefaultBoundary" -DefaultSiteCode "$((Get-PSDrive -PSProvider CMSite).name)";
-    Add-CMBoundaryToGroup -BoundaryName "DefaultBoundary" -BoundaryGroupName "DefaultBoundary";
-    $_Schedule = New-CMSchedule -RecurInterval Minutes -Start "2012/10/20 00:00:00" -End "2013/10/20 00:00:00" -RecurCount 10;
-    Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $_sitecode -Enabled $True -EnableDeltaDiscovery $True -PollingSchedule $_Schedule -AddActiveDirectoryContainer "LDAP://$_domaindn" -Recursive;
-    Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $_sitecode;
-}
-#EndRegion
-
+    $SBCMExtras = {
+        import-module "$(($env:SMS_ADMIN_UI_PATH).remove(($env:SMS_ADMIN_UI_PATH).Length -4, 4))ConfigurationManager.psd1"; 
+        if ($null -eq (Get-PSDrive -Name $_SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {New-PSDrive -Name $_SiteCode -PSProvider CMSite -Root $env:COMPUTERNAME}
+        Set-Location "$((Get-PSDrive -PSProvider CMSite).name)`:"; 
+        #New-CMBoundary -Type IPSubnet -Value "$($ipsub)/24" -name $Subnetname;
+        New-CMBoundary -DisplayName "DefaultBoundary" -BoundaryType ADSite -Value "Default-First-Site-Name"
+        New-CMBoundaryGroup -name "DefaultBoundary" -DefaultSiteCode "$((Get-PSDrive -PSProvider CMSite).name)";
+        Add-CMBoundaryToGroup -BoundaryName "DefaultBoundary" -BoundaryGroupName "DefaultBoundary";
+        $_Schedule = New-CMSchedule -RecurInterval Minutes -Start "2012/10/20 00:00:00" -End "2013/10/20 00:00:00" -RecurCount 10;
+        Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $_sitecode -Enabled $True -EnableDeltaDiscovery $True -PollingSchedule $_Schedule -AddActiveDirectoryContainer "LDAP://$_domaindn" -Recursive;
+        Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $_sitecode;
+    }
+    
 
     $InstallSQLNativeClient += $SBInstallSQLNativeClientParams
     $InstallSQLNativeClient += $SBScriptTemplateBegin.ToString()
@@ -284,19 +282,20 @@ $SBCMExtras = {
     $CMExtras += $SBCMExtras.ToString()
     $CMExtras += $SCScriptTemplateEnd.ToString()
     $CMExtras | Out-File "$($LabScriptPath)\CMExtras.ps1"
+    
+    $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
+
+    #endregion
 
     $VM = Get-VM -Name $VMName
     $VM | Start-VM
-
     start-sleep 10
-    $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
-    While (!(Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+    while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
 
-    Foreach($Script in $Scripts) {
+    foreach ($Script in $Scripts) {
         Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "$($ClientScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
     }
-
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallSQLNativeClient.ps1" -MessageText "InstallSQLNativeClient" -SessionType Domain -VMID $VM.VMId
     $SQLSettings = Invoke-LabCommand -FilePath "$($LabScriptPath)\GetSQLSettings.ps1" -MessageText "GetSQLSettings" -SessionType Domain -VMID $VM.VMId
@@ -363,7 +362,7 @@ $SBCMExtras = {
             'HierarchyExpansionOption' = $hashHierarchy
         }
         $CMInstallINI = ""
-        Foreach ($i in $HASHCMInstallINI.keys) {
+        foreach ($i in $HASHCMInstallINI.keys) {
             $CMInstallINI += "[$i]`r`n"
             foreach ($j in $($HASHCMInstallINI[$i].keys | Sort-Object)) {
                 $CMInstallINI += "$j=$($HASHCMInstallINI[$i][$j])`r`n"
@@ -384,5 +383,7 @@ $SBCMExtras = {
     Invoke-LabCommand -FilePath "$($LabScriptPath)\CMExtras.ps1" -MessageText "CMExtras" -SessionType Domain -VMID $VM.VMId
 
     #Checkpoint-VM -VM $VM -SnapshotName "ConfigMgr Configuration Complete"
+
+    Write-Host "ConfigMgr Configuration Complete!"
         
 }

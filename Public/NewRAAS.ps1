@@ -1,5 +1,5 @@
 function new-RRASServer {
-    param(
+    param (
         [Parameter(ParameterSetName='RRASClass')]
         [RRAS]
         $RRASConfig,
@@ -31,7 +31,7 @@ function new-RRASServer {
         [string]
         $network
     )
-    if(!$PSBoundParameters.ContainsKey('RRASConfig'))
+    if (-not $PSBoundParameters.ContainsKey('RRASConfig'))
     {
         $RRASConfig = [RRAS]::new()
         $RRASConfig.Name = $name
@@ -65,7 +65,7 @@ function new-RRASServer {
             $vm = new-vm -Name $RRASConfig.name -MemoryStartupBytes ($RRASConfig.RAM * 1Gb) -VHDPath $RRASConfig.VHDXpath -Generation 2 | out-null # | Set-VMMemory -DynamicMemoryEnabled:$false
             $vm | Set-VMProcessor -Count $RRASConfig.cores
             Enable-VMIntegrationService -VMName $RRASConfig.name -Name "Guest Service Interface"
-            if(!$RRASConfig.vmSnapshotenabled){
+            if (-not $RRASConfig.vmSnapshotenabled){
                 set-vm -Name $RRASConfig.name -CheckpointType Disabled
             }
             
@@ -123,10 +123,10 @@ function new-RRASServer {
             $RRASConfignewnics = Invoke-Command -Session $RRASConfigSession -ScriptBlock {Get-NetAdapter}
             
             $t = Compare-Object -ReferenceObject $RRASConfignics -DifferenceObject $RRASConfignewnics -PassThru
-            $null = Invoke-Command -Session $RRASConfigSession -ScriptBlock {param($t, $i) new-NetIPAddress -InterfaceIndex $t -AddressFamily IPv4 -IPAddress "$i" -PrefixLength 24} -ArgumentList $t.InterfaceIndex, $rrasconfig.IPaddress
+            $null = Invoke-Command -Session $RRASConfigSession -ScriptBlock {param ($t, $i) new-NetIPAddress -InterfaceIndex $t -AddressFamily IPv4 -IPAddress "$i" -PrefixLength 24} -ArgumentList $t.InterfaceIndex, $rrasconfig.IPaddress
             
-            Invoke-Command -Session $RRASConfigSession -ScriptBlock {param($n, $t)Get-NetAdapter -InterfaceIndex $n | rename-netadapter -newname $t } -ArgumentList $t.InterfaceIndex, $RRASConfig.Network
-            Invoke-Command -Session $RRASConfigSession -ScriptBlock {param($n)get-service -name "remoteaccess" | Restart-Service -WarningAction SilentlyContinue; netsh routing ip nat add interface $n} -ArgumentList $RRASConfig.Network
+            Invoke-Command -Session $RRASConfigSession -ScriptBlock {param ($n, $t)Get-NetAdapter -InterfaceIndex $n | rename-netadapter -newname $t } -ArgumentList $t.InterfaceIndex, $RRASConfig.Network
+            Invoke-Command -Session $RRASConfigSession -ScriptBlock {param ($n)get-service -name "remoteaccess" | Restart-Service -WarningAction SilentlyContinue; netsh routing ip nat add interface $n} -ArgumentList $RRASConfig.Network
             
             
         }

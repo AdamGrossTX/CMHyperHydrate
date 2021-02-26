@@ -3,7 +3,7 @@
     RootModule = 'CMHyperHydrate.psm1'
     Author = 'Adam Gross (@AdamGrossTX) & Steven Hosking (@OnPremCloudGuy)'
     ModuleVersion = '1.0'
-    FunctionsToExport = @()
+    functionsToExport = @()
     CmdletsToExport = @()
     VariablesToExport = @()
     AliasesToExport = @()

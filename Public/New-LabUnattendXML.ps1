@@ -1,40 +1,40 @@
-Function New-LabUnattendXML {
+function New-LabUnattendXML {
 [cmdletbinding()]
-Param (
+param (
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $AdministratorPassword = $Script:Env.EnvAdminPW,
+    $AdministratorPassword = $Script:labEnv.EnvAdminPW,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $TimeZone = $Script:Env.EnvTimeZone,
+    $TimeZone = $Script:labEnv.EnvTimeZone,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $InputLocale = $Script:Env.InputLocale,
+    $InputLocale = $Script:labEnv.InputLocale,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $SystemLocale = $Script:Env.SystemLocale,
+    $SystemLocale = $Script:labEnv.SystemLocale,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UILanguage = $Script:Env.UILanguage,
+    $UILanguage = $Script:labEnv.UILanguage,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UILanguageFallback = $Script:Env.UILanguageFB,
+    $UILanguageFallback = $Script:labEnv.UILanguageFB,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $UserLocale = $Script:Env.UserLocale,
+    $UserLocale = $Script:labEnv.UserLocale,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]

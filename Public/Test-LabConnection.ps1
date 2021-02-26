@@ -1,5 +1,5 @@
 #https://blogs.technet.microsoft.com/virtualization/2016/10/11/waiting-for-vms-to-restart-in-a-complex-configuration-script-with-powershell-direct/
-Function Test-LabConnection {
+function Test-LabConnection {
     [cmdletbinding()]
     param (
         [parameter()]
@@ -31,17 +31,17 @@ Function Test-LabConnection {
         default {break;}
     }
 
-    Try {
-        if($VM.State -eq "Off") {
+    try {
+        if ($VM.State -eq "Off") {
             write-Host "VM Not Running. Starting VM."
             Start-VM -Name $VMName
         }
 
         # Wait for the VM's heartbeat integration component to come up if it is enabled
         $heartbeatic  = (Get-VMIntegrationService -VM $VM | Where-Object Id -match "84EAAE65-2F2E-45F5-9BB5-0E857DC8EB47")
-        If ($heartbeatic -and ($heartbeatic.Enabled -eq $true)) {
+        if ($heartbeatic -and ($heartbeatic.Enabled -eq $true)) {
             $startTime = Get-Date
-            Do {
+            do {
                 $timeElapsed = $(Get-Date) - $startTime
                 if ($($timeElapsed).TotalMinutes -ge 10) {
                     Write-Host "Integration components did not come up after 10 minutes" -MessageType Error
@@ -49,10 +49,10 @@ Function Test-LabConnection {
                 } 
                 Start-Sleep -sec 1
             } 
-            Until ($heartbeatic.PrimaryStatusDescription -eq "OK")
+            until ($heartbeatic.PrimaryStatusDescription -eq "OK")
             Write-Host "Heartbeat IC connected."
         }
-        Do {
+        do {
             Write-Host "Testing $($Type) Connection."
         
             $timeElapsed = $(Get-Date) - $startTime
@@ -62,7 +62,7 @@ Function Test-LabConnection {
             } 
             Start-Sleep -sec 1
             $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock { $True } -ErrorAction SilentlyContinue
-            If($Type -eq 'Domain') {
+            if ($Type -eq 'Domain') {
                  Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock {  
                     do {
                         Write-Host "." -NoNewline -ForegroundColor Gray
@@ -78,10 +78,10 @@ Function Test-LabConnection {
         until ($psReady)
     }
 
-    Catch {
+    catch {
         Write-Warning $_.Exception.Message
         break;
     }
 
-    Return $psReady
+    return $psReady
 }

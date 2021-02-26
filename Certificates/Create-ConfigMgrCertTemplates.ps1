@@ -1,7 +1,7 @@
 
 #https://github.com/PowerShell/CertificateDsc/issues/54
 $Main = {
-    ForEach ($Template in $Configs) {
+    foreach ($Template in $Configs) {
         Write-Host $Template.displayName
         Create-PKICertTemplate -TemplateDisplayName $Template.DisplayName  -PKIConfig $Template.Config -SecurityConfig $Template.Security
     }
@@ -441,8 +441,8 @@ $Configs = @(
 
 
 
-Function Create-PKICertTemplate {
-Param (
+function Create-PKICertTemplate {
+param (
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
@@ -466,7 +466,7 @@ Param (
     $ADSI = [ADSI]"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,$($ConfigContext)" 
 
     $Template = [ADSI]"LDAP://CN=$($CN),CN=Certificate Templates,CN=Public Key Services,CN=Services,$($ConfigContext)"
-    If([string]::IsNullOrEmpty($Template.Name)){
+    if ([string]::IsNullOrEmpty($Template.Name)){
         # create if not exists
         $Template = $ADSI.Create("pKICertificateTemplate", "CN=$($CN)")
     }
@@ -474,7 +474,7 @@ Param (
     $Template.Put("displayName", $TemplateDisplayName)
     $Template.SetInfo()
     
-    foreach($key in $PKIConfig.Keys){
+    foreach ($key in $PKIConfig.Keys){
         $Template.Put($key, $PKIConfig[$key])
     }
 
@@ -482,9 +482,9 @@ Param (
     $Template.SetInfo()
 
     #ResetPerms
-    $Template.ObjectSecurity.Access | ForEach-Object {$Template.ObjectSecurity.RemoveAccessRule(($_))}
+    $Template.ObjectSecurity.Access | foreach-Object {$Template.ObjectSecurity.RemoveAccessRule(($_))}
     #Where-Object InheritanceFlags -ne "ContainerInherit" | 
-    ForEach ($Permission in $SecurityConfig) {
+    foreach ($Permission in $SecurityConfig) {
         $ID = $Permission.IdentityReference.Split("\")
         $ACC = [System.Security.Principal.NTAccount]::new($ID[0], $ID[1])
         $IdentityReference = $ACC.Translate([System.Security.Principal.SecurityIdentifier])

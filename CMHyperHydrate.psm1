@@ -2,6 +2,6 @@
 
 $Public  = @( Get-ChildItem -Path .\Public\*.ps1 -Recurse )
 $Private = @( Get-ChildItem -Path .\Private\*.ps1 -Recurse)
-Foreach($import in @($Public + $Private)) {
+foreach ($import in @($Public + $Private)) {
     . $import.fullname
 }

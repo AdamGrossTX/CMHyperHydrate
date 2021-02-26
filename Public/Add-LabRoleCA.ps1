@@ -1,11 +1,15 @@
-function Add-LabAdditionalApps {
-
+function Add-LabRoleCA {
     [cmdletbinding()]
     param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
         $VMName = $Script:VMConfig.VMName,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DomainFQDN = $Script:labEnv.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -64,24 +68,19 @@ function Add-LabAdditionalApps {
     }
     
     #endregion
-
+        
     #region Script Blocks
-    $SBInstallAdditionalApps = {
-        Set-ExecutionPolicy Bypass -Scope Process -Force; 
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        choco upgrade chocolatey -y -f
-        choco install sql-server-management-studio -y -f
-        choco install vscode -y -f
-        choco install snagit -y -f
-        choco install postman -y -f
+    $SBInstallCA = {
+        Add-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools;
+        Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -KeyLength 2048 -HashAlgorithm SHA1 -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -ValidityPeriod Years -ValidityPeriodUnits 5 -Force -confirm:$false
     }
 
-    $InstallAdditionalApps += $SBDefaultParams
-    $InstallAdditionalApps += $SBScriptTemplateBegin.ToString()
-    $InstallAdditionalApps += $SBInstallAdditionalApps.ToString()
-    $InstallAdditionalApps += $SCScriptTemplateEnd.ToString()
-    $InstallAdditionalApps | Out-File "$($LabScriptPath)\InstallAdditionalApps.ps1"
-
+    $InstallCA += $SBDefaultParams
+    $InstallCA += $SBScriptTemplateBegin.ToString()
+    $InstallCA += $SBInstallCA.ToString()
+    $InstallCA += $SCScriptTemplateEnd.ToString()
+    $InstallCA | Out-File "$($LabScriptPath)\InstallCA.ps1"
+    
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
     #endregion
@@ -96,8 +95,10 @@ function Add-LabAdditionalApps {
         Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
     }
 
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallAdditionalApps.ps1" -MessageText "InstallAdditionalApps" -SessionType Domain -VMID $VM.VMId
+    Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
 
-    Write-Host "Install Additional Apps Complete!"
+    #TODO  Create-PKICertTemplate
+
+    Write-Host "CA Configuration Complete!"
 
 }

@@ -1,6 +1,6 @@
 function New-LabVHDX {
     [cmdletbinding()]
-    param(
+    param (
         [Parameter(Mandatory)]
         [pscredential]
         $DomainUserName,
@@ -38,7 +38,7 @@ function New-LabVHDX {
             Write-Verbose "Multiple Network Adptors found. "
             $i = 1
             $oOptions = @()
-            $nic | ForEach-Object {
+            $nic | foreach-Object {
                 $oOptions += [pscustomobject]@{
                     Item = $i
                     Name = $_.Name

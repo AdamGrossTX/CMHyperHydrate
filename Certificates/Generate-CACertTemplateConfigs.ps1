@@ -10,7 +10,7 @@ $SourceTemplates = @(
 )
 Start-Transcript .\settings.txt -Force 
 Write-Host ""`$Configs" = @("
-ForEach ($SourceTemplateCN in $SourceTemplates) {
+foreach ($SourceTemplateCN in $SourceTemplates) {
 		$ConfigContext = ([ADSI]"LDAP://RootDSE").ConfigurationNamingContext 
 		$ADSI = [ADSI]"LDAP://CN=Certificate Templates,CN=Public Key Services,CN=Services,$ConfigContext"
 		$Template = [ADSI]"LDAP://CN=$SourceTemplateCN,CN=Certificate Templates,CN=Public Key Services,CN=Services,$ConfigContext"
@@ -19,26 +19,26 @@ ForEach ($SourceTemplateCN in $SourceTemplates) {
 		Write-Host "	@{"
 		Write-Host "		""DisplayName"" = ""$($Template.displayName.ToString()) - Test"""
 		Write-Host "		""Config"" = [hashtable]@{"
-			ForEach($Property in $PropertyList) {
+			foreach ($Property in $PropertyList) {
 				$Value = $Template.psbase.Properties.Item($Property).Value
-				If($Property -eq "pKIExpirationPeriod" -or $Property -eq "pKIOverlapPeriod") {
+				if ($Property -eq "pKIExpirationPeriod" -or $Property -eq "pKIOverlapPeriod") {
 					$b = $Value -join ','
 					Write-Host "			""$Property"" = ([Byte[]]($b))"
 
 				}
-				ElseIf($Value -is [byte[]]) {
+				elseif ($Value -is [byte[]]) {
 					$b = '"{0}"' -f ($Value -join '","')
 					Write-Host "			""$Property"" = [Byte[]]("$($b.ToString())")"
 				}
-				ElseIf($Value -is [Object[]]) {
+				elseif ($Value -is [Object[]]) {
 					$b = '"{0}"' -f ($Value -join '","')
 					Write-Host "			""$Property"" = @("$($b.ToString())")"
 				}
-				ElseIf($Value -match '`') {
+				elseif ($Value -match '`') {
 					$NewVal = $Value.Replace('`','``')
 					Write-Host "			""$Property"" = ""$($NewVal.ToString())"""
 				}
-				Else {
+				else {
 					Write-Host "			""$Property"" = ""$($Value.ToString())"""
 				}
 			}
@@ -49,20 +49,20 @@ ForEach ($SourceTemplateCN in $SourceTemplates) {
 
 		Write-Host "		""Security"" = @("
 		$Count = 0
-		ForEach($Config in $TemplateSecurityConfig) {
+		foreach ($Config in $TemplateSecurityConfig) {
 			$Count++
 			Write-Host "			@{"
-			ForEach($Prop in $Config.PSObject.Properties) {
+			foreach ($Prop in $Config.PSObject.Properties) {
 				$Value = $Prop.Value
-				If($Prop.Name.ToString() -Match "IdentityReference" -and $Value -notmatch 'NT AUTHORITY') {
+				if ($Prop.Name.ToString() -Match "IdentityReference" -and $Value -notmatch 'NT AUTHORITY') {
 					$Value = "{0}\{1}" -f $TargetDomain,($Value.ToString().Split("\"))[1]
 				}
 				Write-Host "				""$($Prop.Name.ToString())"" = ""$($Value.ToString())"""
 			}
-			If($Count -eq $TemplateSecurityConfig.Count) {
+			if ($Count -eq $TemplateSecurityConfig.Count) {
 				Write-Host "			}"
 			}
-			Else {
+			else {
 				Write-Host "			},"
 			}
 		}

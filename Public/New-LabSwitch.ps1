@@ -1,16 +1,22 @@
-Function New-LabSwitch {
+function New-LabSwitch {
 [cmdletbinding()]
 Param
 (
     [Parameter()]
     [String]
-    $SwitchName = $Script:Env.EnvSwitchName,
+    $SwitchName = $Script:labEnv.EnvSwitchName,
 
     [Parameter()]
     [String]
-    $IPSubnet = $Script:Env.EnvIPSubnet
+    $IPSubnet = $Script:labEnv.EnvIPSubnet,
+    
+    [Parameter()]
+    [Switch]
+    $RemoveExisting
 
 )
+    if ($RemoveExisting.IsPresent) {
         Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue | Remove-VMSwitch -Confirm:$False -Force -ErrorAction SilentlyContinue
-        New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
+    }
+    New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
 }

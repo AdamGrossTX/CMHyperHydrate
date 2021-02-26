@@ -1,10 +1,10 @@
-Function New-LabVM {
+function New-LabVM {
 [cmdletbinding()]
-param(
+param (
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $ENVName = $Script:Env.Env,
+    $ENVName = $Script:labEnv.Env,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -60,7 +60,7 @@ param(
 
     [Parameter()]
     [string]
-    $DomainName = $Script:Env.EnvFQDN,
+    $DomainName = $Script:labEnv.EnvFQDN,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -70,42 +70,43 @@ param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $SwitchName = $Script:Env.EnvSwitchName,
+    $SwitchName = $Script:labEnv.EnvSwitchName,
 
     [Parameter()]
     [pscredential]
     $LocalAdminCreds = $Script:base.LocalAdminCreds
-    
+
 )
 
-##TODO##
-##Add logic to join to a domain if not the domain controller and if set to join the domain (wouldn't do it for AutoPilot testing and such.)
-
-
-    $SBResizeRenameComputer = {
-        Param($Name)
-        $MaxSize = (Get-PartitionSupportedSize -DriveLetter c).sizeMax
-        Resize-Partition -DriveLetter c -Size $MaxSize
-        Rename-Computer -NewName "$($Name)";
-        Restart-Computer -Force;
+    If (Get-VM -Name $VMName -ErrorAction SilentlyContinue) {
+        Write-Host "VM Already Exists. Skipping Creating VM."
     }
-
-    If(!(Test-Path "$($VMHDPath)\$($VMHDName)" -ErrorAction SilentlyContinue)) {
-        New-Item -Path $VMHDPath -ItemType Directory
-        Copy-Item -Path $ReferenceVHDX -Destination "$($VMHDPath)\$($VMHDName)"
-    }
-    
-    If(!(Get-VM -Name $VMName -ErrorAction SilentlyContinue)) {
-        $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
-        If($EnableSnapshot) {
-            Set-VM -VM $VM -checkpointtype Production
+    else {
+        $SBResizeRenameComputer = {
+            param ($Name)
+            $MaxSize = (Get-PartitionSupportedSize -DriveLetter c).sizeMax
+            Resize-Partition -DriveLetter c -Size $MaxSize
+            Rename-Computer -NewName "$($Name)";
+            Restart-Computer -Force;
         }
-    }
+
+        if (-not (Test-Path "$($VMHDPath)\$($VMHDName)" -ErrorAction SilentlyContinue)) {
+            New-Item -Path $VMHDPath -ItemType Directory
+            Copy-Item -Path $ReferenceVHDX -Destination "$($VMHDPath)\$($VMHDName)"
+        }
+        
+        if (-not (Get-VM -Name $VMName -ErrorAction SilentlyContinue)) {
+            $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
+            if ($EnableSnapshot) {
+                Set-VM -VM $VM -checkpointtype Production
+            }
+        }
+
         Resize-VHD -Path "$($VMHDPath)\$($VMHDName)" -SizeBytes 150gb
         Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
         Set-VM -name $VMName -checkpointtype Disabled -ProcessorCount $ProcessorCount
         Get-VMNetworkAdapter -VMName $VMName | Connect-VMNetworkAdapter -SwitchName $SwitchName
-        if($VMState -eq "Off") {
+        if ($VMState -eq "Off") {
             write-Host "VM Not Running. Starting VM."
             Start-VM -Name $VMName
             start-sleep -Seconds 30
@@ -113,6 +114,5 @@ param(
 
         $VM = Get-VM -Name $VMName
         Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID
-
-        #Checkpoint-VM -VM $VM -SnapshotName "New VM Created"
+    }
 }

@@ -1,4 +1,4 @@
-Function Get-LabConfig {
+function Get-LabConfig {
     [cmdletBinding()]
     [OutputType([PSCustomObject])]
     param (
@@ -21,48 +21,48 @@ Function Get-LabConfig {
     $Script:WksVMs = $ENVConfig.WorkstationVMList
  
     $Script:base = @{}
-    $Script:env = @{}
-    ($Config | Select-Object -Property * -ExcludeProperty "ENVConfig", "VMList", "ServerRef", "WorkstationRef").psobject.properties | ForEach-Object {$Base[$_.Name] = $_.Value}
-    ($ENVConfig  | Select-Object -Property * -ExcludeProperty  "ServerVMList", "WorkstationVMList").psobject.properties | ForEach-Object {$env[$_.Name] = $_.Value}
+    $Script:labEnv = @{}
+    ($Config | Select-Object -Property * -ExcludeProperty "ENVConfig", "VMList", "ServerRef", "WorkstationRef").psobject.properties | foreach-Object {$Base[$_.Name] = $_.Value}
+    ($ENVConfig  | Select-Object -Property * -ExcludeProperty  "ServerVMList", "WorkstationVMList").psobject.properties | foreach-Object {$Script:labEnv[$_.Name] = $_.Value}
 
     $Script:SvrRef = @{}
-    ForEach ($Img in $SvrRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$SvrRef[$_.Name] = $_.Value}
+    foreach ($Img in $SvrRefConfig) {
+        ($Img).psobject.properties | foreach-Object {$SvrRef[$_.Name] = $_.Value}
     }
 
     $Script:WksRef = @{}
-    ForEach ($Img in $WksRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$WksRef[$_.Name] = $_.Value}
+    foreach ($Img in $WksRefConfig) {
+        ($Img).psobject.properties | foreach-Object {$WksRef[$_.Name] = $_.Value}
     }
 
     $base["ConfigMgrCBPrereqsPath"] = "$($base.PathConfigMgr)\Prereqs"
     $base["ConfigMgrTPPrereqsPath"] = "$($base.PathConfigMgrTP)\Prereqs"
 
-    ForEach ($key in @($base.keys)) {
+    foreach ($key in @($base.keys)) {
         If ($key -like "Path*")
         {
             $Base[$key] = $Base.SourcePath + $Base[$key]
-            If($CreateFolders) {
-                If(!(Test-Path -path $Base[$key])) {New-Item -path $Base[$key] -ItemType Directory;}
+            if ($CreateFolders) {
+                if (-not (Test-Path -path $Base[$key])) {New-Item -path $Base[$key] -ItemType Directory;}
             }
         }
     }
 
-    $base["VMPath"] = "$($base.LabPath)\$($env.Env)"
+    $base["VMPath"] = "$($base.LabPath)\$($script:labEnv.Env)"
     $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["SvrISO"] = Get-ChildItem -Path $base.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["WinISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["Packages"] = Get-ChildItem -Path $base.Packages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
     $base["Drivers"] = Get-ChildItem -Path $base.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
-    $base["SvrVHDX"] = "$($base.PathRefImage)\$($SvrRef.RefVHDXName)"
-    $base["WksVHDX"] = "$($base.PathRefImage)\$($WksRef.RefVHDXName)"
+    $base["SvrVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $SvrRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
+    $base["WksVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $WksRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
 
     $base["LocalAdminName"] = "Administrator"
-    $base["LocalAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
+    $base["LocalAdminPassword"] = ConvertTo-SecureString -String $script:labEnv.EnvAdminPW -AsPlainText -Force
     $base["LocalAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.LocalAdminName, $base.LocalAdminPassword)
 
-    $base["DomainAdminName"] = "$($Env.EnvNetBios)\$($Env.EnvAdminName)"
-    $base["DomainAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
+    $base["DomainAdminName"] = "$($script:labEnv.EnvNetBios)\$($script:labEnv.EnvAdminName)"
+    $base["DomainAdminPassword"] = ConvertTo-SecureString -String $script:labEnv.EnvAdminPW -AsPlainText -Force
     $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
         
 }

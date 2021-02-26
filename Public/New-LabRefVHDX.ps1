@@ -1,6 +1,6 @@
-Function New-LabRefVHDX {
+function New-LabRefVHDX {
     [cmdletbinding()]
-    param(
+    param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Server","Workstation")]
@@ -155,7 +155,7 @@ Function New-LabRefVHDX {
             .Example
                 function Test-Parameters {
                     [CmdletBinding()]
-                    param(
+                    param (
                         $Name = $Env:UserName,
                         $Age
                     )
@@ -167,23 +167,23 @@ Function New-LabRefVHDX {
                 }
         #>
         [CmdletBinding()]
-        param()
+        param ()
         # The $MyInvocation for the caller
         $Invocation = Get-Variable -Scope 1 -Name MyInvocation -ValueOnly
         # The $PSBoundParameters for the caller
         $BoundParameters = Get-Variable -Scope 1 -Name PSBoundParameters -ValueOnly
         
         $ParameterValues = @{}
-        foreach($parameter in $Invocation.MyCommand.Parameters.GetEnumerator()) {
+        foreach ($parameter in $Invocation.MyCommand.Parameters.GetEnumerator()) {
             # gm -in $parameter.Value | Out-Default
             try {
                 $key = $parameter.Key
-                if($null -ne ($value = Get-Variable -Name $key -ValueOnly -ErrorAction Ignore)) {
-                    if($value -ne ($null -as $parameter.Value.ParameterType)) {
+                if ($null -ne ($value = Get-Variable -Name $key -ValueOnly -ErrorAction Ignore)) {
+                    if ($value -ne ($null -as $parameter.Value.ParameterType)) {
                         $ParameterValues[$key] = $value
                     }
                 }
-                #if($BoundParameters.ContainsKey($key)) {
+                #if ($BoundParameters.ContainsKey($key)) {
                 #    $ParameterValues[$key] = $BoundParameters[$key]
                 #}
             } finally {}
@@ -201,9 +201,9 @@ Function New-LabRefVHDX {
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:SvrRef.RefHVDSize -as [UInt64];
-                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefFeature))) {$Feature = $Script:SvrRef.RefFeature;}
-                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
-                If(!([string]::IsNullOrEmpty($Script:SvrRef.RefPackage))) {$Package = $Script:base.PathPackages;}
+                if (-not ([string]::IsNullOrEmpty($Script:SvrRef.RefFeature))) {$Feature = $Script:SvrRef.RefFeature;}
+                if (-not ([string]::IsNullOrEmpty($Script:SvrRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
+                if (-not ([string]::IsNullOrEmpty($Script:SvrRef.RefPackage))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
                 $VHDPath = "$($script:Base.SvrVHDX)"
@@ -219,9 +219,9 @@ Function New-LabRefVHDX {
                 };
                 $Edition = $Script:SvrRef.RefIndex;
                 [UInt64]$SizeBytes = $Script:WSRef.RefHVDSize -as [UInt64];
-                If(!([string]::IsNullOrEmpty($Script:WksRef.RefFeature))) {$Feature = $Script:WSRef.RefFeature;}
-                If(!([string]::IsNullOrEmpty($Script:WksRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
-                If(!([string]::IsNullOrEmpty($Script:WksRef.RefPackage))) {$Package = $Script:base.PathPackages;}
+                if (-not ([string]::IsNullOrEmpty($Script:WksRef.RefFeature))) {$Feature = $Script:WSRef.RefFeature;}
+                if (-not ([string]::IsNullOrEmpty($Script:WksRef.RefDriver))) {$Driver = $Script:base.PathDrivers;}
+                if (-not ([string]::IsNullOrEmpty($Script:WksRef.RefPackage))) {$Package = $Script:base.PathPackages;}
                 $DiskLayout = "UEFI";
                 $VHDFormat = "VHDX";
                 $VHDPath = "$($script:Base.WksVHDX)";
@@ -245,7 +245,7 @@ Function New-LabRefVHDX {
     
 
     
-    if(!(Test-Path -Path $VHDPath)) {
+    if (-not (Test-Path -Path $VHDPath)) {
         #region Import Convert-WindowsImage Module
         if ((Get-Module -ListAvailable -Name 'Convert-WindowsImage').count -ne 1) {
             Install-Module -name 'Convert-WindowsImage' -Scope AllUsers
