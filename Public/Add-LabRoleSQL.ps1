@@ -40,6 +40,7 @@ function Add-LabRoleSQL {
     )
 
     #region Standard Setup
+    Write-Host "Starting Add-LabRoleSQL" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     

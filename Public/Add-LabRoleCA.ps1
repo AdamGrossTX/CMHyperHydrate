@@ -34,6 +34,7 @@ function Add-LabRoleCA {
     )
 
     #region Standard Setup
+    Write-Host "Starting Add-LabRoleCA" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     

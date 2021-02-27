@@ -61,9 +61,9 @@ function Test-LabConnection {
                 throw
             } 
             Start-Sleep -sec 1
-            $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock { $True } -ErrorAction SilentlyContinue
+            $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ErrorAction SilentlyContinue -ScriptBlock { $True } 
             if ($Type -eq 'Domain') {
-                 Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock {  
+                 Invoke-Command -VMId $VM.VMId -Credential $Creds -ErrorAction SilentlyContinue -ScriptBlock {  
                     do {
                         Write-Host "." -NoNewline -ForegroundColor Gray
                         Start-Sleep -Seconds 5

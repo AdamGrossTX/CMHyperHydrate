@@ -18,6 +18,7 @@ function New-LabEnv {
     }
 
     New-LabSwitch -RemoveExisting
+    Update-LabRRAS
 
     foreach ($VM in $Script:SvrVMs) {
         $Script:VMConfig = @{}
@@ -50,6 +51,7 @@ function New-LabEnv {
         }
 
         if ($Roles.Contains("SQL")) {
+            Join-LabDomain
             Add-LabRoleSQL
         }
         

@@ -71,6 +71,11 @@ param (
     [ValidateNotNullOrEmpty()]
     [string]
     $SwitchName = $Script:labEnv.EnvSwitchName,
+    
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [int]
+    $VLanID = $Script:labEnv.VLanID,
 
     [Parameter()]
     [pscredential]
@@ -78,6 +83,8 @@ param (
 
 )
 
+    Write-Host "Starting New-LabVM" -ForegroundColor Cyan
+    
     If (Get-VM -Name $VMName -ErrorAction SilentlyContinue) {
         Write-Host "VM Already Exists. Skipping Creating VM."
     }
@@ -105,7 +112,10 @@ param (
         Resize-VHD -Path "$($VMHDPath)\$($VMHDName)" -SizeBytes 150gb
         Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
         Set-VM -name $VMName -checkpointtype Disabled -ProcessorCount $ProcessorCount
-        Get-VMNetworkAdapter -VMName $VMName | Connect-VMNetworkAdapter -SwitchName $SwitchName
+        $Adapter = Get-VMNetworkAdapter -VMName $VMName 
+        $Adapter | Connect-VMNetworkAdapter -SwitchName $SwitchName
+        $Adapter | Set-VMNetworkAdapterVlan -VlanId $VLanID -Access
+
         if ($VMState -eq "Off") {
             write-Host "VM Not Running. Starting VM."
             Start-VM -Name $VMName
@@ -114,5 +124,6 @@ param (
 
         $VM = Get-VM -Name $VMName
         Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID
+        start-sleep -Seconds 
     }
 }

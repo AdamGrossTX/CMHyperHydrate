@@ -35,6 +35,11 @@ function Add-LabRoleCM {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
+        $Packages = $Script:Base.Packages,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
         $DomainNetBiosName = $Script:labEnv.EnvNetBios,
 
         [Parameter()]
@@ -90,6 +95,7 @@ function Add-LabRoleCM {
     )
 
     #region Standard Setup
+    Write-Host "Starting Add-LabRoleCM" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -132,13 +138,17 @@ function Add-LabRoleCM {
     }
 
     $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
-    $ConfigMgrPath = "$($disk):$VMDataPath\ConfigMgr"
-    $ADKPath = "$($disk):$VMDataPath\adk"
-    $ADKWinPEPath = "$($disk):$VMDataPath\adkwinpe"
+    $ConfigMgrPath = "$($disk):$($VMDataPath)\ConfigMgr"
+    $ADKPath = "$($disk):$($VMDataPath)\adk"
+    $ADKWinPEPath = "$($disk):$($VMDataPath)\adkwinpe"
+    $PackagePath = "$($disk):$($VMDataPath)\Packages"
+    
 
     Copy-Item -Path $ConfigMgrMedia -Destination $ConfigMgrPath -Recurse -ErrorAction SilentlyContinue
     Copy-Item -Path $ADKMedia -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
     Copy-Item -Path $ADKWinPEMedia -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
+    New-Item -Path $PackagePath -ItemType Directory -Force
+    Copy-Item -Path $Packages -Destination $PackagePath -Recurse -ErrorAction SilentlyContinue
     Dismount-VHD $VMPath
     #endregion
 
@@ -161,8 +171,21 @@ function Add-LabRoleCM {
         (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
     }
 
+
+    $SBAddFeaturesParams = @"
+    param
+    (
+        `$_LogPath = "$($LogPath)",
+        `$_PackagePath = "C:\Data\Packages"
+    )
+"@
+
     $SBAddFeatures = {
-        Add-WindowsFeature BITS, BITS-IIS-Ext, BITS-Compact-Server, Web-Server, Web-WebServer, Web-Common-Http, Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-App-Dev, Web-Net-Ext, Web-Net-Ext45, Web-ASP, Web-Asp-Net, Web-Asp-Net45, Web-CGI, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Health, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Performance, Web-Stat-Compression, Web-Security, Web-Filtering, Web-Basic-Auth, Web-IP-Security, Web-Url-Auth, Web-Windows-Auth, Web-Mgmt-Tools, Web-Mgmt-Console, Web-Mgmt-Compat, Web-Metabase, Web-Lgcy-Mgmt-Console, Web-Lgcy-Scripting, Web-WMI, Web-Scripting-Tools, Web-Mgmt-Service, RDC;
+        $FeatureList = @("BITS","BITS-IIS-Ext","BITS-Compact-Server","Web-Server","Web-WebServer","Web-Common-Http","Web-Default-Doc","Web-Dir-Browsing","Web-Http-Errors","Web-Static-Content","Web-Http-Redirect","Web-App-Dev","Web-Net-Ext45","Web-ASP","Web-Asp-Net","Web-Asp-Net45","Web-CGI","Web-ISAPI-Ext","Web-ISAPI-Filter","Web-Health","Web-Http-Logging","Web-Custom-Logging","Web-Log-Libraries","Web-Request-Monitor","Web-Http-Tracing","Web-Performance","Web-Stat-Compression","Web-Security","Web-Filtering","Web-Basic-Auth","Web-IP-Security","Web-Url-Auth","Web-Windows-Auth","Web-Mgmt-Tools","Web-Mgmt-Console","Web-Mgmt-Compat","Web-Metabase","Web-Lgcy-Mgmt-Console","Web-Lgcy-Scripting","Web-WMI","Web-Scripting-Tools","Web-Mgmt-Service","RDC")
+        foreach ($Feature in $FeatureList) {
+            Write-Output "Adding Feature: $($Feature)"
+            Add-WindowsFeature -Name $Feature -Source $_PackagePath
+        }
     }
 
     $SBADKParams = @"
@@ -247,7 +270,7 @@ function Add-LabRoleCM {
     $GetSQLSettings += $SCScriptTemplateEnd.ToString()
     $GetSQLSettings | Out-File "$($LabScriptPath)\GetSQLSettings.ps1"
 
-    $AddFeatures += $SBDefaultParams
+    $AddFeatures += $SBAddFeaturesParams
     $AddFeatures += $SBScriptTemplateBegin.ToString()
     $AddFeatures += $SBAddFeatures.ToString()
     $AddFeatures += $SCScriptTemplateEnd.ToString()
@@ -322,7 +345,7 @@ function Add-LabRoleCM {
             'RoleCommunicationProtocol' = "HTTPorHTTPS";
             'ClientsUsePKICertificate' = "0";
             'PrerequisiteComp' = "$($ConfigMgrPrereqsPreDL)";
-            'PrerequisitePath' = "$($ConfigMgrPath)\Prereqs";
+            'PrerequisitePath' = "C:\Prereqs";
             'ManagementPoint' = "$($VMWinName).$($DomainFQDN)";
             'ManagementPointProtocol' = "HTTP";
             'DistributionPoint' = "$($VMWinName).$($DomainFQDN)";
@@ -377,8 +400,6 @@ function Add-LabRoleCM {
 
     #TODO https://systemmanagement.ro/2018/08/13/install-windowsfeature-web-net-ext-failed-source-files-could-not-be-found/
     Invoke-LabCommand -FilePath "$($LabScriptPath)\AddFeatures.ps1" -MessageText "AddFeatures" -SessionType Domain -VMID $VM.VMId
-    Read-Host -Prompt "Fix Features before Proceeding"
-
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ADK.ps1" -MessageText "ADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\WinPEADK.ps1" -MessageText "WinPEADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ExtSchema.ps1" -MessageText "ExtSchema" -SessionType Domain -VMID $VM.VMId

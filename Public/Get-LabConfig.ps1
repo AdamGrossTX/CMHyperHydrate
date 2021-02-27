@@ -13,6 +13,8 @@ function Get-LabConfig {
         $CreateFolders
     )
 
+    Write-Host "Starting Get-LabConfig" -ForegroundColor Cyan
+
     $Config = Get-Content $ConfigFileName -Raw | ConvertFrom-Json
     $ENVConfig = $Config.ENVConfig | Where-Object {$_.ENV -eq $Config.ENVToBuild}
     $SvrRefConfig = $Config.ServerRef
@@ -52,7 +54,7 @@ function Get-LabConfig {
     $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["SvrISO"] = Get-ChildItem -Path $base.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $base["WinISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["Packages"] = Get-ChildItem -Path $base.Packages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
+    $base["Packages"] = Get-ChildItem -Path $base.PathPackages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
     $base["Drivers"] = Get-ChildItem -Path $base.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
     $base["SvrVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $SvrRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
     $base["WksVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $WksRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
@@ -64,5 +66,16 @@ function Get-LabConfig {
     $base["DomainAdminName"] = "$($script:labEnv.EnvNetBios)\$($script:labEnv.EnvAdminName)"
     $base["DomainAdminPassword"] = ConvertTo-SecureString -String $script:labEnv.EnvAdminPW -AsPlainText -Force
     $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
-        
+
+    $VMs = Get-VM
+    $VLans = foreach ($VM in $VMs) {
+        $VM | Get-VMNetworkAdapterVlan | Select -ExpandProperty AccessVlanId
+    }
+
+    $Script:labEnv["VLanID"] =  if ($VLans) {
+        ($VLans | Measure-Object -Maximum).Maximum + 1
+    }
+    else {
+        1
+    }
 }

@@ -9,14 +9,21 @@ Param
     [Parameter()]
     [String]
     $IPSubnet = $Script:labEnv.EnvIPSubnet,
+
+    [Parameter()]
+    [String]
+    $RRASName = $Script:labEnv.RRASName,
     
     [Parameter()]
     [Switch]
     $RemoveExisting
 
 )
-    if ($RemoveExisting.IsPresent) {
-        Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue | Remove-VMSwitch -Confirm:$False -Force -ErrorAction SilentlyContinue
+
+    Write-Host "Starting New-LabSwitch" -ForegroundColor Cyan
+    
+    $ExistingSwitch = Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue
+    if (-not $ExistingSwitch) {
+        New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
     }
-    New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
 }

@@ -45,6 +45,8 @@ function Join-LabDomain {
     )
 
     #region Standard Setup
+    Write-Host "Starting Join-LabDomain" -ForegroundColor Cyan
+    
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -118,6 +120,8 @@ function Join-LabDomain {
     }
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
+
+    Start-Sleep -Seconds 60
     Write-Host "Domain Join Complete!"
 
 }

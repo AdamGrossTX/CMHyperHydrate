@@ -15,6 +15,16 @@ function Add-LabRoleDC {
         [ValidateNotNullOrEmpty()]
         [string]
         $IPSubNet = $Script:labEnv.EnvIPSubnet,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $RRASMac = $Script:labEnv.RRASMAC,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $RRASName = $Script:labEnv.RRASName,
        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -49,6 +59,7 @@ function Add-LabRoleDC {
     )
 
     #region Standard Setup
+    Write-Host "Starting Add-LabRoleDC" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
 
@@ -84,7 +95,6 @@ function Add-LabRoleDC {
 
     #endregion
     
-
     #region Script Blocks
     $SBSetDCIPParams = @"
         param
@@ -131,7 +141,8 @@ function Add-LabRoleDC {
             `$_ServerName = "$($VMName)", 
             `$_IPAddress = "$($IPAddress)", 
             `$_IPSubnet = "$($IPSubnet)",
-            [ipaddress]`$_ScopeID = "$($IPSubnet)0"
+            [ipaddress]`$_ScopeID = "$($IPSubnet)0",
+            `$_RRASMAC = "$($RRASMAC)"
         )
 "@
 
@@ -144,8 +155,8 @@ function Add-LabRoleDC {
         Set-ItemProperty -Path registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ServerManager\Roles\12 -Name ConfigurationState -Value 2;
         Add-DhcpServerv4Scope -name $_DomainFQDN -StartRange "$($_IPSubnet)100" -EndRange "$($_IPSubnet)150" -SubnetMask "255.255.255.0";
         Set-DhcpServerv4OptionValue -Router "$($_IPSubnet)`1" -DNSDomain $_DomainFQDN -DNSServer $_IPAddress -ScopeId $_ScopeID
+        Add-DhcpServerv4Reservation -IPAddress "$($_IPSubnet)`1" -ClientId $_RRASMAC -ScopeId "$($_IPSubnet)0" -Name "RRAS"
     }
-
 
     $SBCreateDCLabDomain = {
         Import-Module ActiveDirectory; 
@@ -191,7 +202,7 @@ function Add-LabRoleDC {
     $CreateDCLabDomain += $SBCreateDCLabDomain.ToString()
     $CreateDCLabDomain += $SCScriptTemplateEnd.ToString()
     $CreateDCLabDomain | Out-File "$($LabScriptPath)\CreateDCLabDomain.ps1"
-    
+
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
     #endregion
@@ -212,7 +223,7 @@ function Add-LabRoleDC {
     Invoke-LabCommand -FilePath "$($LabScriptPath)\DCPromo.ps1" -MessageText "DCPromo" -SessionType Local -VMID $VM.VMId
     #Checkpoint-VM -VM $VM -SnapshotName "DC Promo Complete"
     #endregion
-    start-sleep -seconds 180
+    start-sleep -seconds 360
     while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
     while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ConfigureDHCP.ps1" -MessageText "ConfigureDHCP" -SessionType Domain -VMID $VM.VMId
@@ -220,7 +231,9 @@ function Add-LabRoleDC {
     
     while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
     Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId
+
     $VM | Stop-VM -Force
+    Get-VM -VM $RRASName | Stop-VM -Force -Passthru | Start-VM
     $VM | Start-VM
     start-sleep 20
     
