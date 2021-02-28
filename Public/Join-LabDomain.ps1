@@ -109,6 +109,7 @@ function Join-LabDomain {
     $SBJoinDomain = {
         $_Password = ConvertTo-SecureString -String $_DomainAdminPassword -AsPlainText -Force
         $_Creds = new-object -typename System.Management.Automation.PSCredential($_DomainAdminName,$_Password)
+
         Add-Computer -Credential $_Creds -DomainName $_FQDN -Restart
     }
 
@@ -127,12 +128,15 @@ function Join-LabDomain {
     start-sleep 20
 
     while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
-    
-    foreach ($Script in $Scripts) {
-        Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+    if (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Test-ComputerSecureChannel -ErrorAction SilentlyContinue;})) {
+        foreach ($Script in $Scripts) {
+            Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+        }
+        Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
     }
-
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
+    Else {
+        Write-Host " - $($VMName) is already domain joined. Skipping domain join." -ForegroundColor Cyan
+    }
 
     Start-Sleep -Seconds 60
     Write-Host "Domain Join Complete!"

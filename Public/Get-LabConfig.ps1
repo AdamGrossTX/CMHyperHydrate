@@ -57,7 +57,7 @@ function Get-LabConfig {
     $base["SvrVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $SvrRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
     $base["WksVHDX"] = Get-ChildItem -Path $base.PathRefImage | Where-Object {$_.Name -eq $WksRef.RefVHDXName} |  Select-Object -ExpandProperty FullName
 
-    $base["LocalAdminName"] = "Administrator"
+    $base["LocalAdminName"] = ".\$($script:labEnv.EnvAdminName)"
     $base["LocalAdminPassword"] = ConvertTo-SecureString -String $script:labEnv.EnvAdminPW -AsPlainText -Force
     $base["LocalAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.LocalAdminName, $base.LocalAdminPassword)
 
