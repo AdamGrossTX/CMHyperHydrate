@@ -19,8 +19,6 @@ function Get-LabConfig {
     $ENVConfig = $Config.ENVConfig | Where-Object {$_.ENV -eq $Config.ENVToBuild}
     $SvrRefConfig = $Config.ServerRef
     $WksRefConfig = $Config.WorkstationRef
-    $Script:SvrVMs = $ENVConfig.ServerVMList
-    $Script:WksVMs = $ENVConfig.WorkstationVMList
  
     $Script:base = @{}
     $Script:labEnv = @{}
@@ -67,6 +65,59 @@ function Get-LabConfig {
     $base["DomainAdminPassword"] = ConvertTo-SecureString -String $script:labEnv.EnvAdminPW -AsPlainText -Force
     $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
 
+    $Script:SvrVMs = $ENVConfig.ServerVMList | ForEach-Object {
+        $VMConfig = [PSCustomObject]@{}
+        ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
+        $VMConfig | Add-Member -NotePropertyName "SvrVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+
+        $VMConfig.SvrVHDX = $script:base.SvrVHDX
+        $VMConfig.VMIPAddress = "$($Script:labEnv.EnvIPSubnet)$($_.VMIPLastOctet)"
+        $VMConfig.VMWinName = "$($_.VMName)"
+        $VMConfig.VMName = "$($Script:labEnv.Env)-$($_.VMName)"
+        $VMConfig.VMHDPath = "$($script:base.VMPath)\$($_.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($_.VMName)c.vhdx"
+        $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
+        $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
+        $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig
+    }
+
+    #TODO
+    <#
+    $Script:WksVMs = $ENVConfig.WorkstationVMList | ForEach-Object {
+        $VMConfig = [PSCustomObject]@{}
+        ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
+        $VMConfig | Add-Member -NotePropertyName "WksVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+
+        $VMConfig.SvrVHDX = $script:base.SvrVHDX
+        $VMConfig.VMIPAddress = "$($Script:labEnv.EnvIPSubnet)$($_.VMIPLastOctet)"
+        $VMConfig.VMWinName = "$($_.VMName)"
+        $VMConfig.VMName = "$($Script:labEnv.Env)-$($_.VMName)"
+        $VMConfig.VMHDPath = "$($script:base.VMPath)\$($_.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($_.VMName)c.vhdx"
+        $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
+        $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
+        $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig
+    }
+
+
     $VMs = Get-VM
     $VLans = foreach ($VM in $VMs) {
         $VM | Get-VMNetworkAdapterVlan | Select -ExpandProperty AccessVlanId
@@ -78,4 +129,5 @@ function Get-LabConfig {
     else {
         1
     }
+    #>
 }

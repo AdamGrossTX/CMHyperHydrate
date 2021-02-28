@@ -3,107 +3,116 @@ function Add-LabRoleCM {
     param (
 
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $VMName = $Script:VMConfig.VMName,
+        [PSCustomObject]
+        $VMConfig,
 
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $VMWinName = $Script:VMConfig.VMWinName,
+        [hashtable]
+        $BaseConfig,
 
         [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $VMPath = ("$($Script:VMConfig.VMHDPath)\$($Script:VMConfig.VMHDName)"),
+        [hashtable]
+        $LabEnvConfig,
         
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ConfigMgrMedia = $Script:VMConfig.ConfigMgrMediaPath,
+        $VMName = $VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ADKMedia = $Script:Base.PathADK,
+        $VMWinName = $VMConfig.VMWinName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ADKWinPEMedia = $Script:Base.PathADKWinPE,
+        $VMPath = ("$($VMConfig.VMHDPath)\$($VMConfig.VMHDName)"),
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $Packages = $Script:Base.Packages,
+        $VMDataPath = $BaseConfig.VMDataPath,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ADKMediaPath = $BaseConfig.PathADK,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName = $Script:labEnv.EnvNetBios,
+        $ADKWinPEMediaPath = $BaseConfig.PathADKWinPE,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [object[]]
+        $PackageMediaPath = $BaseConfig.Packages,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:labEnv.EnvFQDN,
+        $ClientDriveRoot = "c:",
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ConfigMgrSiteCode = $Script:VMConfig.CMSiteCode,
+        $DomainNetBiosName = $LabEnvConfig.EnvNetBios,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ConfigMgrSiteCode = $VMConfig.CMSiteCode,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Prod","TP")]
         [string]
-        $ConfigMgrVersion = $Script:VMConfig.CMVersion,
+        $ConfigMgrVersion = $VMConfig.CMVersion,
 
         [Parameter()]
         [int]
-        $ConfigMgrPrereqsPreDL = $Script:VMConfig.CMPreReqPreDL,
+        $ConfigMgrPrereqsPreDL = $VMConfig.CMPreReqPreDL,
         
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $ConfigMgrPrereqsPath = $Script:VMConfig.ConfigMgrPrereqPath,
-        
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $VMDataPath = $Script:Base.VMDataPath,
-
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $BaseConfig.LabPath
 
     )
+
+    $ConfigMgrMediaPath = Switch($VMConfig.CMVersion) {"TP" {$BaseConfig.PathConfigMgrTP; break;} "Prod" {$BaseConfig.PathConfigMgrCB; break;}}
 
     #region Standard Setup
     Write-Host "Starting Add-LabRoleCM" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
-    $ClientScriptPath = "C:$($ScriptPath)"
+    $ClientScriptPath = "$($ClientDriveRoot)$($ScriptPath)"
     
     if (-not (Test-Path -Path "$($LabScriptPath)")) {
         New-Item -Path "$($LabScriptPath)" -ItemType Directory -ErrorAction SilentlyContinue
     }
 
-    $LogPath = "C:$($LogPath)"
+    $LogPath = "$($ClientDriveRoot)$($LogPath)"
     $SBDefaultParams = @"
     param
     (
@@ -133,32 +142,37 @@ function Add-LabRoleCM {
 
     #region Copy media to VM
     $VM = Get-VM -Name $VMName
-    if ((Get-VM -Name $VMName).State -eq "Running") {
-        Stop-VM -Name $VMName
-    }
+    #if ((Get-VM -Name $VMName).State -eq "Running") {
+    #    Stop-VM -Name $VMName
+    #}
 
-    $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
+    #$Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
     $ConfigMgrPath = "$($disk):$($VMDataPath)\ConfigMgr"
+    $ConfigMgrPrereqsPath = "$($disk):$($VMDataPath)\ConfigMgr\Prereqs"
     $ADKPath = "$($disk):$($VMDataPath)\adk"
     $ADKWinPEPath = "$($disk):$($VMDataPath)\adkwinpe"
     $PackagePath = "$($disk):$($VMDataPath)\Packages"
     
-
-    Copy-Item -Path $ConfigMgrMedia -Destination $ConfigMgrPath -Recurse -ErrorAction SilentlyContinue
-    Copy-Item -Path $ADKMedia -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
-    Copy-Item -Path $ADKWinPEMedia -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
-    New-Item -Path $PackagePath -ItemType Directory -Force
-    Copy-Item -Path $Packages -Destination $PackagePath -Recurse -ErrorAction SilentlyContinue
-    Dismount-VHD $VMPath
+    #Copy-Item -Path $ConfigMgrMediaPath -Destination $ConfigMgrPath -Recurse -ErrorAction SilentlyContinue
+    #Copy-Item -Path $ADKMediaPath -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
+    #Copy-Item -Path $ADKWinPEMediaPath -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
+    #New-Item -Path $PackagePath -ItemType Directory -Force
+    #Copy-Item -Path $PackageMediaPath -Destination $PackagePath -Recurse -ErrorAction SilentlyContinue
+    #Dismount-VHD $VMPath
     #endregion
 
+    $ConfigMgrPath = $ConfigMgrPath -replace "$($disk):", "$($ClientDriveRoot)"
+    $ConfigMgrPrereqsPath = $ConfigMgrPrereqsPath -replace "$($disk):", "$($ClientDriveRoot)"
+    $ADKPath = $ADKPath -replace "$($disk):", "$($ClientDriveRoot)"
+    $ADKWinPEPath = $ADKWinPEPath -replace "$($disk):", "$($ClientDriveRoot)"
+    $PackagePath = $PackagePath -replace "$($disk):", "$($ClientDriveRoot)"
     
     #region Script Blocks
     $SBInstallSQLNativeClientParams = @"
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_ConfigMgrPath = "C:\Data\ConfigMgr"
+            `$_ConfigMgrPath = "$($ConfigMgrPath)"
         )
 "@
 
@@ -176,7 +190,7 @@ function Add-LabRoleCM {
     param
     (
         `$_LogPath = "$($LogPath)",
-        `$_PackagePath = "C:\Data\Packages"
+        `$_PackagePath = "$($PackagePath)"
     )
 "@
 
@@ -192,7 +206,7 @@ function Add-LabRoleCM {
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_ADKPath = "C:\Data\ADK"
+            `$_ADKPath = "$($ADKPath)"
         )
 "@
     $SBADK = {
@@ -204,7 +218,7 @@ function Add-LabRoleCM {
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_ADKWinPEPath = "C:\Data\ADKWinPE"
+            `$_ADKWinPEPath = "$($ADKWinPEPath)"
         )
 "@
     $SBWinPEADK = {
@@ -217,7 +231,7 @@ function Add-LabRoleCM {
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_ConfigMgrPath = "C:\Data\ConfigMgr"
+            `$_ConfigMgrPath = "$($ConfigMgrPath)"
         )
 "@
     $SBExtSchema = {
@@ -228,7 +242,7 @@ function Add-LabRoleCM {
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_ConfigMgrPath = "C:\Data\ConfigMgr",
+            `$_ConfigMgrPath = "$($ConfigMgrPath)",
             `$_ClientScriptPath = "$($ClientScriptPath)"
         )
 "@
@@ -240,21 +254,21 @@ function Add-LabRoleCM {
         param
         (
             `$_LogPath = "$($LogPath)",
-            `$_sitecode = "$($sitecode)",
-            `$_DomainDN = "$($DomainDN)",
+            `$_ConfigMgrSiteCode = "$($ConfigMgrSiteCode)",
+            `$_DomainFQDN = "$($DomainFQDN)"
         )
 "@
     $SBCMExtras = {
         import-module "$(($env:SMS_ADMIN_UI_PATH).remove(($env:SMS_ADMIN_UI_PATH).Length -4, 4))ConfigurationManager.psd1"; 
-        if ($null -eq (Get-PSDrive -Name $_SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {New-PSDrive -Name $_SiteCode -PSProvider CMSite -Root $env:COMPUTERNAME}
+        if ($null -eq (Get-PSDrive -Name $_ConfigMgrSiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {New-PSDrive -Name $_ConfigMgrSiteCode -PSProvider CMSite -Root $env:COMPUTERNAME}
         Set-Location "$((Get-PSDrive -PSProvider CMSite).name)`:"; 
         #New-CMBoundary -Type IPSubnet -Value "$($ipsub)/24" -name $Subnetname;
         New-CMBoundary -DisplayName "DefaultBoundary" -BoundaryType ADSite -Value "Default-First-Site-Name"
         New-CMBoundaryGroup -name "DefaultBoundary" -DefaultSiteCode "$((Get-PSDrive -PSProvider CMSite).name)";
         Add-CMBoundaryToGroup -BoundaryName "DefaultBoundary" -BoundaryGroupName "DefaultBoundary";
         $_Schedule = New-CMSchedule -RecurInterval Minutes -Start "2012/10/20 00:00:00" -End "2013/10/20 00:00:00" -RecurCount 10;
-        Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $_sitecode -Enabled $True -EnableDeltaDiscovery $True -PollingSchedule $_Schedule -AddActiveDirectoryContainer "LDAP://$_domaindn" -Recursive;
-        Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $_sitecode;
+        Set-CMDiscoveryMethod -ActiveDirectorySystemDiscovery -SiteCode $_ConfigMgrSiteCode -Enabled $True -EnableDeltaDiscovery $True -PollingSchedule $_Schedule -AddActiveDirectoryContainer "LDAP://$_DomainFQDN" -Recursive;
+        Get-CMDevice | Where-Object {$_.ADSiteName -eq "Default-First-Site-Name"} | Install-CMClient -IncludeDomainController $true -AlwaysInstallClient $true -SiteCode $_ConfigMgrSiteCode;
     }
     
 
@@ -345,7 +359,7 @@ function Add-LabRoleCM {
             'RoleCommunicationProtocol' = "HTTPorHTTPS";
             'ClientsUsePKICertificate' = "0";
             'PrerequisiteComp' = "$($ConfigMgrPrereqsPreDL)";
-            'PrerequisitePath' = "C:\Prereqs";
+            'PrerequisitePath' = "$($ConfigMgrPrereqsPath)";
             'ManagementPoint' = "$($VMWinName).$($DomainFQDN)";
             'ManagementPointProtocol' = "HTTP";
             'DistributionPoint' = "$($VMWinName).$($DomainFQDN)";
@@ -398,7 +412,6 @@ function Add-LabRoleCM {
     $CreateINI | Out-File "$($LabScriptPath)\CMinstall.ini" -Force
     Copy-VMFile -VM $VM -SourcePath "$($LabScriptPath)\CMinstall.ini" -DestinationPath "$($ClientScriptPath)\CMinstall.ini" -CreateFullPath -FileSource Host -Force
 
-    #TODO https://systemmanagement.ro/2018/08/13/install-windowsfeature-web-net-ext-failed-source-files-could-not-be-found/
     Invoke-LabCommand -FilePath "$($LabScriptPath)\AddFeatures.ps1" -MessageText "AddFeatures" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ADK.ps1" -MessageText "ADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\WinPEADK.ps1" -MessageText "WinPEADK" -SessionType Domain -VMID $VM.VMId

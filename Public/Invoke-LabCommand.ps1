@@ -15,8 +15,8 @@ function Invoke-LabCommand {
         $FilePath,
 
         [Parameter()]
-        [Guid[]]
-        $VMID,
+        [Guid]
+        $VMId,
 
         [Parameter()]
         [System.Object[]]
@@ -26,10 +26,6 @@ function Invoke-LabCommand {
         [ValidateSet('Local','Domain')]
         [string]
         $SessionType = 'Domain',
-
-        [parameter()]
-        [string]
-        $VMName = $Script:VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -47,7 +43,7 @@ function Invoke-LabCommand {
     Write-Host "Started - $($MessageText)" | out-null
     $Result = $Null
 
-    if (Test-LabConnection -Type $SessionType -VMName $VMName) {
+    if (Test-LabConnection -Type $SessionType -VMId $VMId) {
         $Creds = Switch($SessionType) {
             "Local" {$LocalAdminCreds;break;}
             "Domain" {$DomainAdminCreds;break;}

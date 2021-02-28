@@ -4,83 +4,82 @@ param (
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $ENVName = $Script:labEnv.Env,
+    $ENVName,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $VMName = $Script:VMConfig.VMName,
+    $VMName,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $VMWinName = $Script:VMConfig.VMWinName,
+    $VMWinName,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $ReferenceVHDX = $Script:base.SvrVHDX,
+    $ReferenceVHDX,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $VMPath = $script:base.VMPath,
+    $VMPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $VMHDPath = $Script:VMConfig.VMHDPath,
+    $VMHDPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $VMHDName = $Script:VMConfig.VMHDName,
+    $VMHDName,
 
     [Parameter()]
     [UInt64]
     [ValidateNotNullOrEmpty()]
     [ValidateRange(512MB, 64TB)]
-    $StartupMemory = $Script:VMConfig.StartupMemory,
+    $StartupMemory,
 
     [Parameter()]
     [int]
-    $ProcessorCount = $Script:VMConfig.ProcessorCount,
+    $ProcessorCount,
 
     [ValidateNotNullOrEmpty()]
     [int]
-    $Generation = $Script:VMConfig.Generation,
+    $Generation,
 
     [Parameter()]
     [switch]
-    $EnableSnapshot = $Script:VMConfig.EnableSnapshot,
+    $EnableSnapshot,
     
     [Parameter()]
     [switch]
-    $StartUp = $Script:VMConfig.AutoStartup,
+    $StartUp,
 
     [Parameter()]
     [string]
-    $DomainName = $Script:labEnv.EnvFQDN,
+    $DomainName,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $IPAddress = $Script:VMConfig.IPAddress,
+    $IPAddress,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string]
-    $SwitchName = $Script:labEnv.EnvSwitchName,
+    $SwitchName,
     
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [int]
-    $VLanID = $Script:labEnv.VLanID,
+    $VLanID,
 
     [Parameter()]
     [pscredential]
-    $LocalAdminCreds = $Script:base.LocalAdminCreds
-
+    $LocalAdminCreds
 )
 
     Write-Host "Starting New-LabVM" -ForegroundColor Cyan
@@ -124,6 +123,6 @@ param (
 
         $VM = Get-VM -Name $VMName
         Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID
-        start-sleep -Seconds 
+        start-sleep -Seconds 60
     }
 }

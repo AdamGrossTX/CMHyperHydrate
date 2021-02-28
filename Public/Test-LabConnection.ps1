@@ -7,9 +7,9 @@ function Test-LabConnection {
         [string]
         $Type = 'Domain',
         
-        [parameter()]
-        [string]
-        $VMName = $Script:VMConfig.VMName,
+        [Parameter()]
+        [Guid]
+        $VMId,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -22,7 +22,7 @@ function Test-LabConnection {
         $DomainAdminCreds = $Script:base.DomainAdminCreds
     )
 
-    $VM = Get-VM -Name $VMName
+    $VM = Get-VM -Id $VMId
 
     $Connected = $false
     $Creds = Switch($Type) {
@@ -34,7 +34,7 @@ function Test-LabConnection {
     try {
         if ($VM.State -eq "Off") {
             write-Host "VM Not Running. Starting VM."
-            Start-VM -Name $VMName
+            $VM | Start-VM
         }
 
         # Wait for the VM's heartbeat integration component to come up if it is enabled

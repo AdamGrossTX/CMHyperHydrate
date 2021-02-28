@@ -4,7 +4,7 @@ function Add-LabRoleCA {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName = $Script:VMConfig.VMName,
+        $VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]

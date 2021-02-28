@@ -142,6 +142,6 @@ $SBUpdateRRAS = {
         Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
     }
 
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\$($ENVName).ps1" -MessageText "Update RRAS" -SessionType Local -VMID $VM.VMId -VMName $VMName
+    Invoke-LabCommand -FilePath "$($LabScriptPath)\$($ENVName).ps1" -MessageText "Update RRAS" -SessionType Local -VMID $VM.VMId
 
 }
