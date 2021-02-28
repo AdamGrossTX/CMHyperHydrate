@@ -142,23 +142,23 @@ function Add-LabRoleCM {
 
     #region Copy media to VM
     $VM = Get-VM -Name $VMName
-    #if ((Get-VM -Name $VMName).State -eq "Running") {
-    #    Stop-VM -Name $VMName
-    #}
+    if ((Get-VM -Name $VMName).State -eq "Running") {
+        Stop-VM -Name $VMName
+    }
 
-    #$Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
+    $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
     $ConfigMgrPath = "$($disk):$($VMDataPath)\ConfigMgr"
     $ConfigMgrPrereqsPath = "$($disk):$($VMDataPath)\ConfigMgr\Prereqs"
     $ADKPath = "$($disk):$($VMDataPath)\adk"
     $ADKWinPEPath = "$($disk):$($VMDataPath)\adkwinpe"
     $PackagePath = "$($disk):$($VMDataPath)\Packages"
     
-    #Copy-Item -Path $ConfigMgrMediaPath -Destination $ConfigMgrPath -Recurse -ErrorAction SilentlyContinue
-    #Copy-Item -Path $ADKMediaPath -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
-    #Copy-Item -Path $ADKWinPEMediaPath -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
-    #New-Item -Path $PackagePath -ItemType Directory -Force
-    #Copy-Item -Path $PackageMediaPath -Destination $PackagePath -Recurse -ErrorAction SilentlyContinue
-    #Dismount-VHD $VMPath
+    Copy-Item -Path $ConfigMgrMediaPath -Destination $ConfigMgrPath -Recurse -ErrorAction SilentlyContinue
+    Copy-Item -Path $ADKMediaPath -Destination $ADKPath -Recurse -ErrorAction SilentlyContinue
+    Copy-Item -Path $ADKWinPEMediaPath -Destination $ADKWinPEPath -Recurse -ErrorAction SilentlyContinue
+    New-Item -Path $PackagePath -ItemType Directory -Force
+    Copy-Item -Path $PackageMediaPath -Destination $PackagePath -Recurse -ErrorAction SilentlyContinue
+    Dismount-VHD $VMPath
     #endregion
 
     $ConfigMgrPath = $ConfigMgrPath -replace "$($disk):", "$($ClientDriveRoot)"
@@ -413,8 +413,10 @@ function Add-LabRoleCM {
     Copy-VMFile -VM $VM -SourcePath "$($LabScriptPath)\CMinstall.ini" -DestinationPath "$($ClientScriptPath)\CMinstall.ini" -CreateFullPath -FileSource Host -Force
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\AddFeatures.ps1" -MessageText "AddFeatures" -SessionType Domain -VMID $VM.VMId
+    Start-Sleep -seconds 120
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ADK.ps1" -MessageText "ADK" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\WinPEADK.ps1" -MessageText "WinPEADK" -SessionType Domain -VMID $VM.VMId
+    Start-Sleep -seconds 120
     Invoke-LabCommand -FilePath "$($LabScriptPath)\ExtSchema.ps1" -MessageText "ExtSchema" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCM.ps1" -MessageText "InstallCM" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\CMExtras.ps1" -MessageText "CMExtras" -SessionType Domain -VMID $VM.VMId
