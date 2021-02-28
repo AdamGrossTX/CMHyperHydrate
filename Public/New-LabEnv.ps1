@@ -17,62 +17,53 @@ function New-LabEnv {
         New-LabRefVHDX -BuildType Workstation
     }
 
-    New-LabSwitch -RemoveExisting
+    New-LabSwitch -LabEnvConfig $Script:LabEnv
     
     foreach ($VM in $Script:SvrVMs) {
-        $NewVMSplat = @{
-            ENVName = $Script:labEnv.Env
-            VMName = $VM.VMName
-            VMWinName =$VM.VMWinName
-            ReferenceVHDX = $Script:base.SvrVHDX
-            VMPath = $script:base.VMPath
-            VMHDPath =$VM.VMHDPath
-            VMHDName = $VM.VMHDName
-            StartupMemory = $VM.StartupMemory
-            ProcessorCount = $VM.ProcessorCount
-            Generation = $VM.Generation
-            EnableSnapshot = $VM.EnableSnapshot
-            StartUp = $VM.AutoStartup
-            DomainName = $Script:labEnv.EnvFQDN
-            IPAddress = $VM.VMIPAddress
-            SwitchName = $Script:labEnv.EnvSwitchName
-            VLanID = $Script:labEnv.VLanID
-            LocalAdminCreds = $Script:base.LocalAdminCreds
-        }
-
         Write-Host "Creating New VM: $($VM.VMName)" -ForegroundColor Cyan
-        New-LabVM @NewVMSplat
+        $ConfigSplat = @{
+            VMConfig = $VM 
+            BaseConfig = $Script:Base 
+            LabEnvConfig = $Script:LabEnv
+        }
+        New-LabVM @ConfigSplat
     }
 
     foreach ($VM in $Script:SvrVMs) {
         Write-Host "Installing Roles for: $($VM.VMName)" 
         foreach($role in $VM.VMRoles.Split(",")) {
+            $ConfigSplat = @{
+                VMConfig = $VM 
+                BaseConfig = $Script:Base 
+                LabEnvConfig = $Script:LabEnv
+            }
+    
             Write-Host "  - Found Role $($role) for $($VM.VMName)" -ForegroundColor Cyan
             Switch($role) {
                 "RRAS" {
-                    #Add-LabRoleRRAS -VMName $VM.VMName
+                    Add-LabRoleRRAS @ConfigSplat
                     break
                 }
                 "DC" {
-                    #Update-LabRRAS
-                    #Add-LabRoleDC -VMName $VM.VMName
+                    Update-LabRRAS @ConfigSplat
+                    Add-LabRoleDC @ConfigSplat
                     break
                 }
                 "CA" {
-                    #Join-LabDomain -VMName $VM.VMName
-                    #Add-LabRoleCA -VMName $VM.VMName
+                    Join-LabDomain @ConfigSplat
+                    Add-LabRoleCA @ConfigSplat
                     Break
                 }
                 "SQL" {
-                    #Join-LabDomain -VMName $VM.VMName
-                    #Add-LabRoleSQL -VMName $VM.VMName
-                    #Add-LabAdditionalApps -VMConfig $VM -BaseConfig $Script:Base -LabEnvConfig $Script:LabEnv -AppList @("sql-server-management-studio")
+                    Join-LabDomain @ConfigSplat
+                    Add-LabRoleSQL @ConfigSplat
+                    Add-LabAdditionalApps @ConfigSplat -AppList @("sql-server-management-studio")
                     Break
                 }
                 "CM" {
-                    #Join-LabDomain -VMName $VM.VMName
-                    Add-LabRoleCM -VMConfig $VM -BaseConfig $Script:Base -LabEnvConfig $Script:LabEnv -verbose
-                    #Add-LabAdditionalApps -VMConfig $VM -BaseConfig $Script:Base -LabEnvConfig $Script:LabEnv -AppList @("vscode","snagit")
+                    Join-LabDomain @ConfigSplat
+                    Add-LabRoleCM @ConfigSplat
+                    Add-LabAdditionalApps @ConfigSplat -AppList @("vscode","snagit")
                     Break
                  }
                  Default {Write-Host "No Role Found"; Break;}

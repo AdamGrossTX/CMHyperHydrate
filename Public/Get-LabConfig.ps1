@@ -82,8 +82,8 @@ function Get-LabConfig {
         $VMConfig.VMIPAddress = "$($Script:labEnv.EnvIPSubnet)$($_.VMIPLastOctet)"
         $VMConfig.VMWinName = "$($_.VMName)"
         $VMConfig.VMName = "$($Script:labEnv.Env)-$($_.VMName)"
-        $VMConfig.VMHDPath = "$($script:base.VMPath)\$($_.VMName)\Virtual Hard Disks"
-        $VMConfig.VMHDName = "$($_.VMName)c.vhdx"
+        $VMConfig.VMHDPath = "$($script:base.VMPath)\$($VMConfig.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($VMConfig.VMName)c.vhdx"
         $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
         $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
         $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB

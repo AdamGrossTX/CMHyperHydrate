@@ -1,40 +1,53 @@
 function Add-LabRoleRRAS {
     [cmdletbinding()]
     param (
+        
+        [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
+
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
+
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
+        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName,
+        $VMName = $VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $InternetSwitchName = $Script:labEnv.InternetSwitchName,
+        $InternetSwitchName = $LabEnvConfig.InternetSwitchName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:labEnv.EnvFQDN,
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $BaseConfig.LabPath
 
     )
 
@@ -107,7 +120,11 @@ function Add-LabRoleRRAS {
         Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "$($ClientScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
     }
 
-    Get-VMNetworkAdapter -VMName $VMName | Connect-VMNetworkAdapter -SwitchName $InternetSwitchName | Set-VMNetworkAdapter -DeviceNaming On -Passthru | Rename-NetAdapter -NewName "Internet"
+    $Adapter = Get-VMNetworkAdapter -VMName $VMName
+    $Adapter | Connect-VMNetworkAdapter -SwitchName $InternetSwitchName
+    $Adapter | Set-VMNetworkAdapter -DeviceNaming On -Untagged
+    $Adapter | Rename-NetAdapter -NewName "Internet"
+
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallRRAS.ps1" -MessageText "InstallRRAS" -SessionType Local -VMID $VM.VMId
 
     Write-Host "RRAS Configuration Complete!"

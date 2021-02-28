@@ -3,48 +3,60 @@ function Update-LabRRAS {
     param (
 
         [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
+
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
+
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
+        
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName = $Script:labEnv.RRASName,
+        $VMName = $LabEnvConfig.RRASName,
 
         [Parameter()]
         [String]
-        $SwitchName = $Script:labEnv.EnvSwitchName,
+        $SwitchName = $LabEnvConfig.EnvSwitchName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $RRASName = $Script:labEnv.RRASName,
+        $RRASName = $LabEnvConfig.RRASName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ENVName = $Script:labEnv.Env,
+        $ENVName = $LabEnvConfig.Env,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $BaseConfig.LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $BaseConfig.LabPath
 
     )
 
@@ -91,8 +103,8 @@ function Update-LabRRAS {
     $NewRRASAdapter = $VM | Add-VMNetworkAdapter -SwitchName $SwitchName -Name $ENVName -Passthru
     $NewRRASAdapter | Set-VMNetworkAdapterVlan -VlanId 4 -Access
     $NewRRASAdapter | Set-VMNetworkAdapter -DeviceNaming On -Passthru | Rename-VMNetworkAdapter -NewName $ENVName
-    $Script:labEnv["RRASMAC"] = $NewRRASAdapter.MACAddress
-    $RRASMAC = $Script:labEnv["RRASMAC"]
+    $LabEnvConfig["RRASMAC"] = $NewRRASAdapter.MACAddress
+    $RRASMAC = $LabEnvConfig["RRASMAC"]
     
     #region Script Blocks
 

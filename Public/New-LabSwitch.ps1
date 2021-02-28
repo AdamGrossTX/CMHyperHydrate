@@ -2,17 +2,22 @@ function New-LabSwitch {
 [cmdletbinding()]
 Param
 (
+
+    [Parameter()]
+    [hashtable]
+    $LabEnvConfig,
+    
     [Parameter()]
     [String]
-    $SwitchName = $Script:labEnv.EnvSwitchName,
+    $SwitchName = $LabEnvConfig.EnvSwitchName,
 
     [Parameter()]
     [String]
-    $IPSubnet = $Script:labEnv.EnvIPSubnet,
+    $IPSubnet = $LabEnvConfig.EnvIPSubnet,
 
     [Parameter()]
     [String]
-    $RRASName = $Script:labEnv.RRASName,
+    $RRASName = $LabEnvConfig.RRASName,
     
     [Parameter()]
     [Switch]

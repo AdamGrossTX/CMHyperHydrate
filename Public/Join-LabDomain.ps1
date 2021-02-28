@@ -2,45 +2,58 @@ function Join-LabDomain {
 
     [cmdletbinding()]
     param (
+        
+        [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
+
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
+
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
+        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName,
+        $VMName = $VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:labEnv.EnvFQDN,
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $BaseConfig.LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath,
+        $LabPath = $BaseConfig.LabPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainAdminName = "$($Script:labEnv.EnvNetBios)\Administrator",
+        $DomainAdminName = "$($LabEnvConfig.EnvNetBios)\Administrator",
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainAdminPassword = $Script:labEnv.EnvAdminPW
+        $DomainAdminPassword = $LabEnvConfig.EnvAdminPW
 
     )
 

@@ -1,35 +1,48 @@
 function Add-LabRoleCA {
     [cmdletbinding()]
     param (
+        
+        [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
+
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
+
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
+        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName,
+        $VMName = $VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:labEnv.EnvFQDN,
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $BaseConfig.LabPath
 
     )
 

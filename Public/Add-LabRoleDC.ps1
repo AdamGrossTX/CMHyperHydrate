@@ -1,60 +1,73 @@
 function Add-LabRoleDC {
     [cmdletbinding()]
     param (
+    
+        [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
+
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
+
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
+        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $VMName = $Script:VMConfig.VMName,
+        $VMName = $VMConfig.VMName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $IPAddress = $Script:VMConfig.VMIPAddress,
+        $IPAddress = $VMConfig.VMIPAddress,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $IPSubNet = $Script:labEnv.EnvIPSubnet,
+        $IPSubNet = $LabEnvConfig.EnvIPSubnet,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $RRASMac = $Script:labEnv.RRASMAC,
+        $RRASMac = $LabEnvConfig.RRASMAC,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $RRASName = $Script:labEnv.RRASName,
+        $RRASName = $LabEnvConfig.RRASName,
        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainFQDN = $Script:labEnv.EnvFQDN,
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $BaseConfig.LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ScriptPath = $Script:Base.VMScriptPath,
+        $ScriptPath = $BaseConfig.VMScriptPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LogPath = $Script:Base.VMLogPath,
+        $LogPath = $BaseConfig.VMLogPath,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $Script:Base.LabPath
+        $LabPath = $BaseConfig.LabPath
 
     )
 
@@ -122,8 +135,8 @@ function Add-LabRoleDC {
         (
             `$_LogPath = "$($LogPath)",
             `$_FQDN = "$($DomainFQDN)",
-            `$_DomainAdminName = "$($Script:labEnv.EnvNetBios)\Administrator",
-            `$_DomainAdminPassword = "$($Script:labEnv.EnvAdminPW)"
+            `$_DomainAdminName = "$($LabEnvConfig.EnvNetBios)\Administrator",
+            `$_DomainAdminPassword = "$($LabEnvConfig.EnvAdminPW)"
         )
 "@
 

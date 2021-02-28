@@ -1,86 +1,101 @@
+
 function New-LabVM {
-[cmdletbinding()]
-param (
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $ENVName,
+    [cmdletbinding()]
+    param (
 
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $VMName,
+        [Parameter()]
+        [PSCustomObject]
+        $VMConfig,
 
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $VMWinName,
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
 
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $ReferenceVHDX,
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
 
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $VMPath,
-
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $VMHDPath,
-
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $VMHDName,
-
-    [Parameter()]
-    [UInt64]
-    [ValidateNotNullOrEmpty()]
-    [ValidateRange(512MB, 64TB)]
-    $StartupMemory,
-
-    [Parameter()]
-    [int]
-    $ProcessorCount,
-
-    [ValidateNotNullOrEmpty()]
-    [int]
-    $Generation,
-
-    [Parameter()]
-    [switch]
-    $EnableSnapshot,
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ENVName = $LabEnvConfig.Env,
     
-    [Parameter()]
-    [switch]
-    $StartUp,
-
-    [Parameter()]
-    [string]
-    $DomainName,
-
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $IPAddress,
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $VMName = $VMConfig.VMName,
     
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $SwitchName,
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $VMWinName = $VMConfig.VMWinName,
     
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [int]
-    $VLanID,
-
-    [Parameter()]
-    [pscredential]
-    $LocalAdminCreds
-)
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $ReferenceVHDX = $BaseConfig.SvrVHDX,
+    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $VMPath = $BaseConfig.VMPath,
+    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $VMHDPath = $VMConfig.VMHDPath,
+    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $VMHDName = $VMConfig.VMHDName,
+    
+        [Parameter()]
+        [UInt64]
+        [ValidateNotNullOrEmpty()]
+        [ValidateRange(512MB, 64TB)]
+        $StartupMemory = $VMConfig.StartupMemory,
+    
+        [Parameter()]
+        [int]
+        $ProcessorCount = $VMConfig.ProcessorCount,
+    
+        [ValidateNotNullOrEmpty()]
+        [int]
+        $Generation = $VMConfig.Generation,
+    
+        [Parameter()]
+        [switch]
+        $EnableSnapshot = $VMConfig.EnableSnapshot,
+        
+        [Parameter()]
+        [switch]
+        $StartUp = $VMConfig.AutoStartup,
+    
+        [Parameter()]
+        [string]
+        $DomainName = $Script:labEnv.EnvFQDN,
+    
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $IPAddress = $VMConfig.IPAddress,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $SwitchName = $Script:labEnv.EnvSwitchName,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [int]
+        $VLanID = $Script:labEnv.VLanID,
+    
+        [Parameter()]
+        [pscredential]
+        $LocalAdminCreds = $BaseConfig.LocalAdminCreds
+    
+    )
 
     Write-Host "Starting New-LabVM" -ForegroundColor Cyan
     
