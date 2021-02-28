@@ -248,7 +248,7 @@ function Add-LabRoleDC {
     $VM | Stop-VM -Force
     Get-VM -VM $RRASName | Stop-VM -Force -Passthru | Start-VM
     $VM | Start-VM
-    start-sleep 20
+    start-sleep -seconds 120
     
     Write-Host "DC Configuration Complete!"
 

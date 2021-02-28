@@ -61,7 +61,8 @@ function New-LabEnv {
                     Break
                 }
                 "CM" {
-                    Join-LabDomain @ConfigSplat
+                    #TODO - Add logic to skip the domain join if the device is already joined.
+                    #Join-LabDomain @ConfigSplat
                     Add-LabRoleCM @ConfigSplat
                     Add-LabAdditionalApps @ConfigSplat -AppList @("vscode","snagit")
                     Break
