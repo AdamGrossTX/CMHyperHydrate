@@ -74,7 +74,7 @@ function New-LabVM {
     
         [Parameter()]
         [string]
-        $DomainName = $Script:labEnv.EnvFQDN,
+        $DomainName = $LabEnvConfig.EnvFQDN,
     
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -84,18 +84,21 @@ function New-LabVM {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $SwitchName = $Script:labEnv.EnvSwitchName,
+        $SwitchName = $LabEnvConfig.EnvSwitchName,
         
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [int]
-        $VLanID = $Script:labEnv.VLanID,
+        $VLanID = $LabEnvConfig.VLanID,
     
         [Parameter()]
         [pscredential]
         $LocalAdminCreds = $BaseConfig.LocalAdminCreds
     
     )
+
+    $Password = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
+    $LocalAdminCreds = new-object -typename System.Management.Automation.PSCredential($BaseConfig.LocalAdminName, $Password)
 
     Write-Host "Starting New-LabVM" -ForegroundColor Cyan
     
@@ -119,7 +122,7 @@ function New-LabVM {
         if (-not (Get-VM -Name $VMName -ErrorAction SilentlyContinue)) {
             $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
             if ($EnableSnapshot) {
-                Set-VM -VM $VM -checkpointtype Production
+                Set-VM -VM $VM -checkpointtype Production -AutomaticCheckpointsEnabled $False
             }
         }
 
@@ -133,11 +136,12 @@ function New-LabVM {
         if ($VMState -eq "Off") {
             write-Host "VM Not Running. Starting VM."
             Start-VM -Name $VMName
-            start-sleep -Seconds 30
+            start-sleep -Seconds 120
         }
 
         $VM = Get-VM -Name $VMName
-        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID
-        start-sleep -Seconds 60
+        Invoke-LabCommand -SessionType Local -ScriptBlock $SBResizeRenameComputer -MessageText "SBResizeRenameComputer" -ArgumentList $VMWinName -VMID $VM.VMID -LocalAdminCreds $LocalAdminCreds
+        start-sleep -Seconds 120
     }
+
 }

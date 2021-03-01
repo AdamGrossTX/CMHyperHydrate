@@ -122,8 +122,9 @@ function Add-LabRoleRRAS {
 
     $Adapter = Get-VMNetworkAdapter -VMName $VMName
     $Adapter | Connect-VMNetworkAdapter -SwitchName $InternetSwitchName
-    $Adapter | Set-VMNetworkAdapter -DeviceNaming On -Untagged
-    $Adapter | Rename-NetAdapter -NewName "Internet"
+    $Adapter | Set-VMNetworkAdapter -DeviceNaming On
+    $Adapter | Set-VMNetworkAdapterVlan -Untagged
+    $Adapter | Rename-VMNetworkAdapter -NewName "Internet"
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallRRAS.ps1" -MessageText "InstallRRAS" -SessionType Local -VMID $VM.VMId
 

@@ -22,14 +22,19 @@ function Test-LabConnection {
         $DomainAdminCreds = $Script:base.DomainAdminCreds
     )
 
-    $VM = Get-VM -Id $VMId
+    $Password = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
+    $LocalAdminCreds = new-object -typename System.Management.Automation.PSCredential($BaseConfig.LocalAdminName, $Password)
 
+    $VM = Get-VM -Id $VMId
+    
     $Connected = $false
     $Creds = Switch($Type) {
         "Local" {$LocalAdminCreds; break;}
         "Domain" {$DomainAdminCreds; break;}
         default {break;}
     }
+
+    $Script:base
 
     try {
         if ($VM.State -eq "Off") {

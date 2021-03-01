@@ -19,15 +19,27 @@ function New-LabEnv {
 
     New-LabSwitch -LabEnvConfig $Script:LabEnv
     
-    foreach ($VM in $Script:SvrVMs) {
-        Write-Host "Creating New VM: $($VM.VMName)" -ForegroundColor Cyan
+    $ModulePath = $script:PSCommandPath
+    $BaseConfig = $Script:Base
+    $LabEnvConfig = $Script:LabEnv
+
+    Write-Host "Starting Batch Job to Create VMs." -ForegroundColor Cyan
+    Write-Host " - No status will be returned while VMs are being created. Please wait." -ForegroundColor Cyan
+    $Job = $Script:SvrVMs | ForEach-Object -AsJob -ThrottleLimit 5 -Parallel {
+        Import-Module $Using:ModulePath -Force
+        $Script:LabEnv = $using:LabEnvConfig
+        $Script:Base = $using:BaseConfig
+        Write-Host "Creating New VM: $($_.VMName)" -ForegroundColor Cyan
         $ConfigSplat = @{
-            VMConfig = $VM 
-            BaseConfig = $Script:Base 
-            LabEnvConfig = $Script:LabEnv
+            VMConfig = $_ 
+            BaseConfig = $Using:BaseConfig
+            LabEnvConfig = $Using:LabEnvConfig
         }
+
         New-LabVM @ConfigSplat
     }
+
+    $job | Wait-Job | Receive-Job
 
     foreach ($VM in $Script:SvrVMs) {
         Write-Host "Installing Roles for: $($VM.VMName)" 
