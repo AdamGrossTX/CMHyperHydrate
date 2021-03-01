@@ -124,18 +124,15 @@ function Join-LabDomain {
     #endregion
 
     $VM = Get-VM -VM $VMName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 20
 
     while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
-    if (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Test-ComputerSecureChannel -ErrorAction SilentlyContinue;})) {
+    while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {try {Test-ComputerSecureChannel}catch{return $false}})) {
         foreach ($Script in $Scripts) {
             Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
         }
         Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
-    }
-    Else {
-        Write-Host " - $($VMName) is already domain joined. Skipping domain join." -ForegroundColor Cyan
     }
 
     Start-Sleep -Seconds 60

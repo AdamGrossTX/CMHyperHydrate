@@ -90,7 +90,7 @@ function Add-LabRoleRRAS {
         
     #region Script Blocks
     $SBInstallRRAS = {
-        Install-WindowsFeature Routing -IncludeManagementTools
+        Install-WindowsFeature Routing,RSAT-RemoteAccess-Mgmt -IncludeManagementTools
         Get-NetAdapter -Physical -Name "Ethernet" | Rename-NetAdapter -newname "External"
         Install-RemoteAccess -VpnType VPN
         netsh routing ip nat install
@@ -111,7 +111,7 @@ function Add-LabRoleRRAS {
     #endregion
 
     $VM = Get-VM -VM $VMName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 10
 
     while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}

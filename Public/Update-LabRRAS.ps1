@@ -145,7 +145,7 @@ $SBUpdateRRAS = {
     #endregion
 
     $VM = Get-VM -VM $RRASName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 10
 
     while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}

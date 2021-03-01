@@ -143,7 +143,7 @@ function Add-LabRoleCM {
     #region Copy media to VM
     $VM = Get-VM -Name $VMName
     if ((Get-VM -Name $VMName).State -eq "Running") {
-        Stop-VM -Name $VMName
+        Stop-VM -Name $VMName -WarningAction SilentlyContinue
     }
 
     $Disk = (Mount-VHD -Path $VMPath -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
@@ -325,7 +325,7 @@ function Add-LabRoleCM {
     #endregion
 
     $VM = Get-VM -Name $VMName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 10
 
     while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}

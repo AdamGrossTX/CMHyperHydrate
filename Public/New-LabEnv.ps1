@@ -6,6 +6,7 @@ function New-LabEnv {
         [String]
         $ConfigFileName
     )
+
     
     Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
     if ($SvrRef.RefVHDXName -and -not $Base.SvrVHDX) {
@@ -69,14 +70,13 @@ function New-LabEnv {
                 "SQL" {
                     Join-LabDomain @ConfigSplat
                     Add-LabRoleSQL @ConfigSplat
-                    Add-LabAdditionalApps @ConfigSplat -AppList @("sql-server-management-studio")
+                    #Add-LabAdditionalApps @ConfigSplat -AppList @("sql-server-management-studio")
                     Break
                 }
                 "CM" {
-                    #TODO - Add logic to skip the domain join if the device is already joined.
                     Join-LabDomain @ConfigSplat
                     Add-LabRoleCM @ConfigSplat
-                    Add-LabAdditionalApps @ConfigSplat -AppList @("vscode","snagit")
+                    #Add-LabAdditionalApps @ConfigSplat -AppList @("vscode","snagit")
                     Break
                  }
                  Default {Write-Host "No Role Found"; Break;}
@@ -102,5 +102,9 @@ function New-LabEnv {
         New-LabVM
     }
 #>
+
+
+Write-Host "New lab build Finished." -ForegroundColor Cyan
+Get-date
 
 }

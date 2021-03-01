@@ -221,7 +221,7 @@ function Add-LabRoleDC {
     #endregion
 
     $VM = Get-VM -VM $VMName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 10
 
     while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
@@ -231,7 +231,7 @@ function Add-LabRoleDC {
     }
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\SetDCIP.ps1" -MessageText "SetDCIP" -SessionType Local -VMID $VM.VMId
-    $VM | Stop-VM -Force
+    $VM | Stop-VM -Force -WarningAction SilentlyContinue
     Invoke-LabCommand -FilePath "$($LabScriptPath)\AddDCFeatures.ps1" -MessageText "AddDCFeatures" -SessionType Local -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\DCPromo.ps1" -MessageText "DCPromo" -SessionType Local -VMID $VM.VMId
     #Checkpoint-VM -VM $VM -SnapshotName "DC Promo Complete"
@@ -245,9 +245,9 @@ function Add-LabRoleDC {
     while ((Invoke-Command -VMName $VM.VMName -Credential $DomainAdminCreds {(get-command get-adgroup).count} -ErrorAction Continue) -ne 1) {Start-Sleep -Seconds 5}
     Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId
 
-    $VM | Stop-VM -Force
-    Get-VM -VM $RRASName | Stop-VM -Force -Passthru | Start-VM
-    $VM | Start-VM
+    $VM | Stop-VM -Force -WarningAction SilentlyContinue
+    Get-VM -VM $RRASName | Restart-VM -Force -WarningAction SilentlyContinue
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep -seconds 120
     
     Write-Host "DC Configuration Complete!"

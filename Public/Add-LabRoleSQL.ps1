@@ -177,7 +177,7 @@ function Add-LabRoleSQL {
     #endregion
 
     $VM = Get-VM -Name $VMName
-    $VM | Start-VM
+    $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 10
 
     while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}

@@ -39,7 +39,7 @@ function Test-LabConnection {
     try {
         if ($VM.State -eq "Off") {
             write-Host "VM Not Running. Starting VM."
-            $VM | Start-VM
+            $VM | Start-VM -WarningAction SilentlyContinue
         }
 
         # Wait for the VM's heartbeat integration component to come up if it is enabled
