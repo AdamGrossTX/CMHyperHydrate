@@ -52,7 +52,7 @@ function Add-LabRoleRRAS {
     )
 
     #region Standard Setup
-    Write-Host "Starting Add-LabRoleRRAS" -ForegroundColor Cyan
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -75,8 +75,8 @@ function Add-LabRoleRRAS {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -97,7 +97,8 @@ function Add-LabRoleRRAS {
         netsh routing ip nat add interface "External"
         netsh routing ip nat set interface "External" mode=full
         Set-LocalUser -Name "Administrator" -PasswordNeverExpires 1
-        Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon -Type DWord -value "1" -Force
+        Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon -Type DWord -Value 1 -Force
+        Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\RemoteAccess\Parameters -Name ModernStackEnabled -Value 0 -Type DWord -Force
     }
 
     $InstallRRAS += $SBDefaultParams
@@ -128,6 +129,5 @@ function Add-LabRoleRRAS {
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallRRAS.ps1" -MessageText "InstallRRAS" -SessionType Local -VMID $VM.VMId
 
-    Write-Host "RRAS Configuration Complete!"
-
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

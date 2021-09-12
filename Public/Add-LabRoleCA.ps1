@@ -47,7 +47,7 @@ function Add-LabRoleCA {
     )
 
     #region Standard Setup
-    Write-Host "Starting Add-LabRoleCA" -ForegroundColor Cyan
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -70,8 +70,8 @@ function Add-LabRoleCA {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -112,7 +112,5 @@ function Add-LabRoleCA {
     Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
 
     #TODO  Create-PKICertTemplate
-
-    Write-Host "CA Configuration Complete!"
-
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

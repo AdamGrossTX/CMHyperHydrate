@@ -30,12 +30,12 @@ function Invoke-LabCommand {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $Script:LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds
+        $DomainAdminCreds = $Script:DomainAdminCreds
         
     )
 

@@ -1,7 +1,7 @@
 {
-    "ENVToBuild"        : "CMTP4",
-    "LabPath"           : "L:\\Labs",
-    "SourcePath"        : "L:\\Labs\\CMHyperHydrate",
+    "ENVToBuild"        : "ASDLabTP1",
+    "LabPath"           : "D:\\Labs",
+    "SourcePath"        : "C:\\Labs",
     "PathSQL"           : "\\Media\\ISO\\SQL",
     "PathSvr"           : "\\Media\\ISO\\Server",
     "PathWin10"         : "\\Media\\ISO\\Windows10",
@@ -17,44 +17,23 @@
     "VMScriptPath"      : "\\Data\\Scripts",
     "ServerRef"         : [
         {
-            "RefID"         : "2016",
-            "RefName"       : "Windows Server 2016",
-            "RefVHDXName"   : "Server2016Ref.vhdx",
+            "RefID"         : "2019",
+            "RefName"       : "Windows Server 2019",
+            "RefVHDXName"   : "Server2019Ref.vhdx",
             "RefIndex"      : "2",
             "RefSrcType"    : "ISO",
             "RefHVDSize"    : "128gb",
-            "RefHFeature"   : "NetFx3",
-            "RefPackage"    : "",
-            "RefDriver"     : ""
-        }
-    ],
-    "WorkstationRef"        : [
-        {
-            "RefID"         : "1809",
-            "RefName"       : "Windows 10 1809",
-            "RefVHDXName"   : "Windows1809Ref.vhdx",
-            "RefIndex"      : "3",
-            "RefSrcType"    : "ISO",
-            "RefHVDSize"    : "50gb",
-            "RefHFeature"   : "NetFx3",
-            "RefPackage"    : "",
-            "RefDriver"     : ""
+            "RefFeature"   : "NetFx3"
         }
     ],
     "ENVConfig"         : [
         {
-            "Env"           : "CMCB",
+            "Env"           : "ASDLabTP1",
+            "EnvSwitchName" : "ASDLabTP1",
             "EnvNetBios"    : "ASD",
             "EnvFQDN"       : "ASD.lab",
-            "EnvIPSubnet"   : "172.30.80.",
-            "EnvAdminPW"    : "P@ssw0rd"
-        },
-        {
-            "Env"           : "CMTP4",
-            "EnvSwitchName" : "CMTP4-InternalNAT",
-            "EnvNetBios"    : "ASD",
-            "EnvFQDN"       : "asd.lab",
-            "EnvIPSubnet"   : "172.30.20.",
+            "EnvIPSubnet"   : "172.100.10.",
+            "EnvAdminName"  : "Administrator",
             "EnvAdminPW"    : "P@ssw0rd",
             "EnvTimeZone"   : "Central Standard Time",
             "InputLocale"   : "0409:00000409",
@@ -62,18 +41,33 @@
             "UILanguage"    : "en-us",
             "UILanguageFB"  : "en-us",
             "UserLocale"    : "en-us",
+            "VLANID"        : "4",
+            "RRASName"      : "ASDLabTP1-RRAS",
+            "InternetSwitchName" : "LAB - Realtek USB",
             "ServerVMList": [
                 {
                     "VMID"          : "VM1",
-                    "VMName"        : "CM1",
+                    "VMName"        : "RRAS",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "RRAS",
+                    "VMIPLastOctet" : "1",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "1",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                },
+                {
+                    "VMID"          : "VM2",
+                    "VMName"        : "CM01",
                     "VMOS"          : "Server",
                     "VMRoles"       : "DC,CA,SQL,ADK,PE,CM",
-                    "VMIPLastOctet" : "10",
-                    "CMSiteCode"    : "TP1",
+                    "VMIPLastOctet" : "12",
+                    "CMSiteCode"    : "PS1",
                     "CMVersion"     : "TP",
                     "CMPreReqPreDL" : "1",
                     "CMPreReqPath"  : "1",
-                    "EnableSnapShot": "0",
+                    "EnableSnapShot": "1",
                     "StartupMemory" : "16gb",
                     "ProcessorCount" : "4",
                     "Generation"    : "2",

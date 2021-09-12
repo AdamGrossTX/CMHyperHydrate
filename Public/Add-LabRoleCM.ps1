@@ -101,13 +101,13 @@ function Add-LabRoleCM {
 
     )
 
-    $ConfigMgrMediaPath = Switch($VMConfig.CMVersion) {"TP" {$BaseConfig.PathConfigMgrTP; break;} "Prod" {$BaseConfig.PathConfigMgrCB; break;}}
-
     #region Standard Setup
-    Write-Host "Starting Add-LabRoleCM" -ForegroundColor Cyan
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "$($ClientDriveRoot)$($ScriptPath)"
-    
+
+    $ConfigMgrMediaPath = Switch($VMConfig.CMVersion) {"TP" {$BaseConfig.PathConfigMgrTP; break;} "Prod" {$BaseConfig.PathConfigMgrCB; break;}}
+
     if (-not (Test-Path -Path "$($LabScriptPath)")) {
         New-Item -Path "$($LabScriptPath)" -ItemType Directory -ErrorAction SilentlyContinue
     }
@@ -127,15 +127,15 @@ function Add-LabRoleCM {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
     $SCScriptTemplateEnd = {
         #endregion
-        Stop-Transcript
+        Stop-Transcript | Out-Null
     }
     
     #endregion
@@ -181,10 +181,10 @@ function Add-LabRoleCM {
     }
 
     $SBGetSQLSettings = {
+        Start-Service MSSQLSERVER -ErrorAction SilentlyContinue | Out-Null
         [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-        (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
+        $Settings = (new-object ('Microsoft.SqlServer.Management.Smo.Server') $env:COMPUTERNAME).Settings | Select-Object DefaultFile, Defaultlog
     }
-
 
     $SBAddFeaturesParams = @"
     param
@@ -247,7 +247,14 @@ function Add-LabRoleCM {
         )
 "@
     $SBInstallCM = {
-        Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\setup.exe" -ArgumentList "/script $($_ClientScriptPath)\CMinstall.ini" -Wait
+        $SQLService = Get-Service -Name MSSQLSERVER -ErrorAction SilentlyContinue
+        if ($SQLService) {
+            $SQLService | Where-Object {$_.Status -ne 'Running'} | Start-Service
+            Start-Process -FilePath "$($_ConfigMgrPath)\SMSSETUP\bin\x64\setup.exe" -ArgumentList "/script $($_ClientScriptPath)\CMinstall.ini" -Wait
+        }
+        else {
+            Write-Output "SQL Server Not Running"
+        }
     }
 
     $SBCMExtrasParams = @"
@@ -282,6 +289,7 @@ function Add-LabRoleCM {
     $GetSQLSettings += $SBScriptTemplateBegin.ToString()
     $GetSQLSettings += $SBGetSQLSettings.ToString()
     $GetSQLSettings += $SCScriptTemplateEnd.ToString()
+    $GetSQLSettings += 'Return $Settings'
     $GetSQLSettings | Out-File "$($LabScriptPath)\GetSQLSettings.ps1"
 
     $AddFeatures += $SBAddFeaturesParams
@@ -339,13 +347,13 @@ function Add-LabRoleCM {
 
     #region INIFile
     if ($ConfigMgrVersion -eq "Prod") {
-        $HashIdent = @{'action' = 'InstallPrimarySite'
+        $HashIdent = @{'Action' = 'InstallPrimarySite'
         }
         $SiteName = "Current Branch $($ConfigMgrSiteCode)"
     }
     else {
         $HashIdent = @{
-            'action' = 'InstallPrimarySite';
+            'Action' = 'InstallPrimarySite';
             'Preview' = "1"
         }
         $SiteName = "Tech Preview $($ConfigMgrSiteCode)"
@@ -423,6 +431,5 @@ function Add-LabRoleCM {
 
     #Checkpoint-VM -VM $VM -SnapshotName "ConfigMgr Configuration Complete"
 
-    Write-Host "ConfigMgr Configuration Complete!"
-        
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

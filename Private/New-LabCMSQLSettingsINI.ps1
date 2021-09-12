@@ -3,17 +3,17 @@ function New-LabCMSQLSettingsINI {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName =  $Script:labEnv.EnvFQDN,
+        $DomainNetBiosName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $UserName = $Script:base.DomainAdminName,
+        $UserName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $Password = $Script:labEnv.EnvAdminPW
+        $Password
     )
 
     $SQLHash = @{'ACTION'                = '"Install"';

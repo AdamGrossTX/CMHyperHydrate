@@ -72,7 +72,7 @@ function Add-LabRoleDC {
     )
 
     #region Standard Setup
-    Write-Host "Starting Add-LabRoleDC" -ForegroundColor Cyan
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
 
@@ -95,8 +95,8 @@ function Add-LabRoleDC {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -250,9 +250,5 @@ function Add-LabRoleDC {
     $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep -seconds 120
     
-    Write-Host "DC Configuration Complete!"
-
-    #Checkpoint-VM -VM $VM -SnapshotName "DC Configuration Complete"
-        
-
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

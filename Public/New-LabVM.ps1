@@ -97,11 +97,11 @@ function New-LabVM {
     
     )
 
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
+
     $Password = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
     $LocalAdminCreds = new-object -typename System.Management.Automation.PSCredential($BaseConfig.LocalAdminName, $Password)
 
-    Write-Host "Starting New-LabVM" -ForegroundColor Cyan
-    
     if (Get-VM -Name $VMName -ErrorAction SilentlyContinue) {
         Write-Host "VM Already Exists. Skipping Creating VM."
     }
@@ -114,9 +114,9 @@ function New-LabVM {
             Set-ItemProperty -Path $AdminKey -Name "IsInstalled" -Value 0
             Set-ItemProperty -Path $UserKey -Name "IsInstalled" -Value 0
             Stop-Process -Name Explorer -Erroraction SilentlyContinue
-            Write-Host "IE Enhanced Security Configuration (ESC) has been disabled." -ForegroundColor Green
+            Write-Output "IE Enhanced Security Configuration (ESC) has been disabled." -ForegroundColor Green
             Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -Value 00000000
-            Write-Host "User Access Control (UAC) has been disabled." -ForegroundColor Green    
+            Write-Output "User Access Control (UAC) has been disabled." -ForegroundColor Green    
 
             $MaxSize = (Get-PartitionSupportedSize -DriveLetter c).sizeMax
             Resize-Partition -DriveLetter c -Size $MaxSize
@@ -154,5 +154,5 @@ function New-LabVM {
         $VMName | Restart-VM -Force -WarningAction SilentlyContinue
         start-sleep -Seconds 120
     }
-
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

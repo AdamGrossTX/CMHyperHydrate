@@ -1,5 +1,4 @@
 function Join-LabDomain {
-
     [cmdletbinding()]
     param (
         
@@ -58,8 +57,7 @@ function Join-LabDomain {
     )
 
     #region Standard Setup
-    Write-Host "Starting Join-LabDomain" -ForegroundColor Cyan
-    
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -82,8 +80,8 @@ function Join-LabDomain {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -109,8 +107,9 @@ function Join-LabDomain {
     $SBJoinDomain = {
         $_Password = ConvertTo-SecureString -String $_DomainAdminPassword -AsPlainText -Force
         $_Creds = new-object -typename System.Management.Automation.PSCredential($_DomainAdminName,$_Password)
-
         Add-Computer -Credential $_Creds -DomainName $_FQDN -Restart
+        $DomainJoined = (((Get-ComputerInfo).CsDomainRole -eq "PrimaryDomainController") -or (Test-ComputerSecureChannel -ErrorAction SilentlyContinue))
+        Return $DomainJoined
     }
 
     $JoinDomain += $SBJoinDomainParams
@@ -127,15 +126,15 @@ function Join-LabDomain {
     $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep 20
 
+    $DomainJoined = $False
     while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
-    while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {try {Test-ComputerSecureChannel}catch{return $false}})) {
-        foreach ($Script in $Scripts) {
-            Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
-        }
-        Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
-    }
+    do {
+            foreach ($Script in $Scripts) {
+                Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+            }
+            $DomainJoined = Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
+    } until ($DomainJoined)
 
     Start-Sleep -Seconds 60
-    Write-Host "Domain Join Complete!"
-
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

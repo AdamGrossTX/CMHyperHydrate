@@ -61,8 +61,7 @@ function Update-LabRRAS {
     )
 
     #region Standard Setup
-    Write-Host "Starting Update-LabRRAS" -ForegroundColor Cyan
-    
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
 
@@ -85,8 +84,8 @@ function Update-LabRRAS {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -156,4 +155,5 @@ $SBUpdateRRAS = {
 
     Invoke-LabCommand -FilePath "$($LabScriptPath)\$($ENVName).ps1" -MessageText "Update RRAS" -SessionType Local -VMID $VM.VMId
 
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

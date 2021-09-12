@@ -25,10 +25,12 @@ Param
 
 )
 
-    Write-Host "Starting New-LabSwitch" -ForegroundColor Cyan
-    
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
+
     $ExistingSwitch = Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue
     if (-not $ExistingSwitch) {
         New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
     }
+
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

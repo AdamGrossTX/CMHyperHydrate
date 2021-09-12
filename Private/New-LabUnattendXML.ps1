@@ -1,52 +1,60 @@
 function New-LabUnattendXML {
-[cmdletbinding()]
-param (
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $AdministratorPassword = $Script:labEnv.EnvAdminPW,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $TimeZone = $Script:labEnv.EnvTimeZone,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $InputLocale = $Script:labEnv.InputLocale,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $SystemLocale = $Script:labEnv.SystemLocale,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $UILanguage = $Script:labEnv.UILanguage,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $UILanguageFallback = $Script:labEnv.UILanguageFB,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $UserLocale = $Script:labEnv.UserLocale,
-    
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $OutputFile = "Unattend.XML",
+    [cmdletbinding()]
+    param (
+        [Parameter()]
+        [hashtable]
+        $BaseConfig,
 
-    [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string]
-    $OutputPath = "$($Script:Base.LabPath)\$($Script:Base.ENVToBuild)"
+        [Parameter()]
+        [hashtable]
+        $LabEnvConfig,
 
-)
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AdministratorPassword = $LabEnvConfig.EnvAdminPW,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $TimeZone = $LabEnvConfig.EnvTimeZone,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $InputLocale = $LabEnvConfig.InputLocale,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $SystemLocale = $LabEnvConfig.SystemLocale,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $UILanguage = $LabEnvConfig.UILanguage,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $UILanguageFallback = $LabEnvConfig.UILanguageFB,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $UserLocale = $LabEnvConfig.UserLocale,
+        
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $OutputFile = "Unattend.XML",
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $OutputPath = $BaseConfig.VMPath
+
+    )
 
 New-Item -Path $OutputPath -ItemType Directory -Force
 

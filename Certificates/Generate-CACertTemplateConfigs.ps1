@@ -8,7 +8,7 @@ $SourceTemplates = @(
 	"ConfigMgrDistributionPointCertificate",
 	"ConfigMgrClientCertificate"
 )
-Start-Transcript .\settings.txt -Force 
+Start-Transcript .\settings.txt -Force | Out-Null;
 Write-Host ""`$Configs" = @("
 foreach ($SourceTemplateCN in $SourceTemplates) {
 		$ConfigContext = ([ADSI]"LDAP://RootDSE").ConfigurationNamingContext 
@@ -45,7 +45,7 @@ foreach ($SourceTemplateCN in $SourceTemplates) {
 		Write-Host "	}"
 
 		#GetPermissions
-		$TemplateSecurityConfig = $Template.ObjectSecurity.Access | Select IdentityReference,ActiveDirectoryRights,AccessControlType,ObjectType,InheritanceType,InheritedObjectType
+		$TemplateSecurityConfig = $Template.ObjectSecurity.Access | Select-Object IdentityReference,ActiveDirectoryRights,AccessControlType,ObjectType,InheritanceType,InheritedObjectType
 
 		Write-Host "		""Security"" = @("
 		$Count = 0

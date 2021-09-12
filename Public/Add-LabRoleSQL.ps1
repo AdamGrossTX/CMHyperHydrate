@@ -52,7 +52,7 @@ function Add-LabRoleSQL {
     )
 
     #region Standard Setup
-    Write-Host "Starting Add-LabRoleSQL" -ForegroundColor Cyan
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
     $ClientScriptPath = "C:$($ScriptPath)"
     
@@ -75,8 +75,8 @@ function Add-LabRoleSQL {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber;
-        Write-Host "Logging to $_LogFile";
+        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
@@ -92,23 +92,9 @@ function Add-LabRoleSQL {
     Add-VMDvdDrive -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
     Set-VMDvdDrive -Path $SQLISO -VMName $VMName -ControllerNumber 0 -ControllerLocation 1
     
-    $SQLPath = "C:$($VMDataPath)\SQL"
-    $SQLInstallINI = New-LabCMSQLSettingsINI
-    
+    $SQLInstallINI = New-LabCMSQLSettingsINI -DomainNetBiosName $LabEnvConfig.EnvFQDN -UserName $BaseConfig.DomainAdminName -Password $LabEnvConfig.EnvAdminPW
     
     #region Script Blocks
-    $SBSQLIniParams = @"
-        param (
-            `$_LogPath = "$($LogPath)",
-            `$_SQLInstallINI = "$($SQLInstallINI)",
-            `$_SQLPath = "$($SQLPath)"
-        )
-"@
-
-    $SBSQLIni = {
-        New-Item -ItemType file -Path "$($_SQLPath)\ConfigurationFile.INI" -Value $_SQLInstallINI -Force
-    }
-
     $SBSQLInstallCmdParams = @"
         param (
             `$_LogPath = "$($LogPath)",
@@ -140,13 +126,7 @@ function Add-LabRoleSQL {
     }
 
     $SQLIni += $SQLInstallINI.ToString()
-    $SQLIni | Out-File "$($LabScriptPath)\ConfigurationFile.INI"
-
-    #$SQLIni += $SBSQLIniParams
-    #$SQLIni += $SBScriptTemplateBegin.ToString()
-    #$SQLIni += $SBSQLIni.ToString()
-    #$SQLIni += $SCScriptTemplateEnd.ToString()
-    #$SQLIni | Out-File "$($LabScriptPath)\SQLIni.ps1"
+    $SQLIni | Out-File "$($LabScriptPath)\ConfigurationFile.INI" -Force
 
     $SQLInstallCmd += $SBSQLInstallCmdParams
     $SQLInstallCmd += $SBScriptTemplateBegin.ToString()
@@ -194,7 +174,5 @@ function Add-LabRoleSQL {
 
     Set-VMDvdDrive -VMName $VMName -Path $null
 
-    Write-Host "SQL Configuration Complete!"
-    #Checkpoint-VM -VM $VM -SnapshotName "SQL Configuration Complete"
-        
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

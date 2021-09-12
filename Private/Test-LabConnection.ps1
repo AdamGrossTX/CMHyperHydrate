@@ -14,12 +14,12 @@ function Test-LabConnection {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $Script:LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds
+        $DomainAdminCreds = $Script:DomainAdminCreds
     )
 
     $Password = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
@@ -27,14 +27,11 @@ function Test-LabConnection {
 
     $VM = Get-VM -Id $VMId
     
-    $Connected = $false
     $Creds = Switch($Type) {
         "Local" {$LocalAdminCreds; break;}
         "Domain" {$DomainAdminCreds; break;}
         default {break;}
     }
-
-    $Script:base
 
     try {
         if ($VM.State -eq "Off") {
