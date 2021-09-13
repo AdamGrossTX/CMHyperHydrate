@@ -25,6 +25,10 @@ function Add-LabRoleSQL {
         $SQLISO = $BaseConfig.SQLISO,
 
         [Parameter()]
+        [string]
+        $AddWSUS = $VMConfig.AddWSUS,
+
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
         $VMDataPath = $BaseConfig.VMDataPath,
@@ -75,13 +79,13 @@ function Add-LabRoleSQL {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -131,25 +135,25 @@ function Add-LabRoleSQL {
     $SQLInstallCmd += $SBSQLInstallCmdParams
     $SQLInstallCmd += $SBScriptTemplateBegin.ToString()
     $SQLInstallCmd += $SBSQLInstallCmd.ToString()
-    $SQLInstallCmd += $SCScriptTemplateEnd.ToString()
+    $SQLInstallCmd += $SBScriptTemplateEnd.ToString()
     $SQLInstallCmd | Out-File "$($LabScriptPath)\SQLInstallCmd.ps1"
 
     $SQLMemory += $SBDefaultParams
     $SQLMemory += $SBScriptTemplateBegin.ToString()
     $SQLMemory += $SBSQLMemory.ToString()
-    $SQLMemory += $SCScriptTemplateEnd.ToString()
+    $SQLMemory += $SBScriptTemplateEnd.ToString()
     $SQLMemory | Out-File "$($LabScriptPath)\SQLMemory.ps1"
 
     $AddWSUS += $SBDefaultParams
     $AddWSUS += $SBScriptTemplateBegin.ToString()
     $AddWSUS += $SBAddWSUS.ToString()
-    $AddWSUS += $SCScriptTemplateEnd.ToString()
+    $AddWSUS += $SBScriptTemplateEnd.ToString()
     $AddWSUS | Out-File "$($LabScriptPath)\AddWSUS.ps1"
 
     $WSUSPostInstall += $SBDefaultParams
     $WSUSPostInstall += $SBScriptTemplateBegin.ToString()
     $WSUSPostInstall += $SBWSUSPostInstall.ToString()
-    $WSUSPostInstall += $SCScriptTemplateEnd.ToString()
+    $WSUSPostInstall += $SBScriptTemplateEnd.ToString()
     $WSUSPostInstall | Out-File "$($LabScriptPath)\WSUSPostInstall.ps1"
     
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
@@ -169,9 +173,10 @@ function Add-LabRoleSQL {
     #Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLIni.ps1" -MessageText "SQLIni" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLInstallCmd.ps1" -MessageText "SQLInstallCmd" -SessionType Domain -VMID $VM.VMId
     Invoke-LabCommand -FilePath "$($LabScriptPath)\SQLMemory.ps1" -MessageText "SQLMemory" -SessionType Domain -VMID $VM.VMId
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\AddWSUS.ps1" -MessageText "AddWSUS" -SessionType Domain -VMID $VM.VMId
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\WSUSPostInstall.ps1" -MessageText "WSUSPostInstall" -SessionType Domain -VMID $VM.VMId
-
+    if($AddWSUS = 1) {
+        Invoke-LabCommand -FilePath "$($LabScriptPath)\AddWSUS.ps1" -MessageText "AddWSUS" -SessionType Domain -VMID $VM.VMId
+        Invoke-LabCommand -FilePath "$($LabScriptPath)\WSUSPostInstall.ps1" -MessageText "WSUSPostInstall" -SessionType Domain -VMID $VM.VMId
+    }
     Set-VMDvdDrive -VMName $VMName -Path $null
 
     Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan

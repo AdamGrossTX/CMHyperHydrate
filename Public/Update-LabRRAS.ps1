@@ -84,13 +84,13 @@ function Update-LabRRAS {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -136,7 +136,7 @@ $SBUpdateRRAS = {
     $UpdateRRAS += $SBUpdateRRASParams
     $UpdateRRAS += $SBScriptTemplateBegin.ToString()
     $UpdateRRAS += $SBUpdateRRAS.ToString()
-    $UpdateRRAS += $SCScriptTemplateEnd.ToString()
+    $UpdateRRAS += $SBScriptTemplateEnd.ToString()
     $UpdateRRAS | Out-File "$($LabScriptPath)\$($ENVName).ps1"
 
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"

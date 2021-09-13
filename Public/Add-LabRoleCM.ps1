@@ -127,13 +127,13 @@ function Add-LabRoleCM {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript | Out-Null
     }
@@ -282,50 +282,50 @@ function Add-LabRoleCM {
     $InstallSQLNativeClient += $SBInstallSQLNativeClientParams
     $InstallSQLNativeClient += $SBScriptTemplateBegin.ToString()
     $InstallSQLNativeClient += $SBInstallSQLNativeClient.ToString()
-    $InstallSQLNativeClient += $SCScriptTemplateEnd.ToString()
+    $InstallSQLNativeClient += $SBScriptTemplateEnd.ToString()
     $InstallSQLNativeClient | Out-File "$($LabScriptPath)\InstallSQLNativeClient.ps1"
 
     $GetSQLSettings += $SBDefaultParams
     $GetSQLSettings += $SBScriptTemplateBegin.ToString()
     $GetSQLSettings += $SBGetSQLSettings.ToString()
-    $GetSQLSettings += $SCScriptTemplateEnd.ToString()
+    $GetSQLSettings += $SBScriptTemplateEnd.ToString()
     $GetSQLSettings += 'Return $Settings'
     $GetSQLSettings | Out-File "$($LabScriptPath)\GetSQLSettings.ps1"
 
     $AddFeatures += $SBAddFeaturesParams
     $AddFeatures += $SBScriptTemplateBegin.ToString()
     $AddFeatures += $SBAddFeatures.ToString()
-    $AddFeatures += $SCScriptTemplateEnd.ToString()
+    $AddFeatures += $SBScriptTemplateEnd.ToString()
     $AddFeatures | Out-File "$($LabScriptPath)\AddFeatures.ps1"
 
     $ADK += $SBADKParams
     $ADK += $SBScriptTemplateBegin.ToString()
     $ADK += $SBADK.ToString()
-    $ADK += $SCScriptTemplateEnd.ToString()
+    $ADK += $SBScriptTemplateEnd.ToString()
     $ADK | Out-File "$($LabScriptPath)\ADK.ps1"
 
     $WinPEADK += $SBWinPEADKParams
     $WinPEADK += $SBScriptTemplateBegin.ToString()
     $WinPEADK += $SBWinPEADK.ToString()
-    $WinPEADK += $SCScriptTemplateEnd.ToString()
+    $WinPEADK += $SBScriptTemplateEnd.ToString()
     $WinPEADK | Out-File "$($LabScriptPath)\WinPEADK.ps1"
 
     $ExtSchema += $SBExtSchemaParams
     $ExtSchema += $SBScriptTemplateBegin.ToString()
     $ExtSchema += $SBExtSchema.ToString()
-    $ExtSchema += $SCScriptTemplateEnd.ToString()
+    $ExtSchema += $SBScriptTemplateEnd.ToString()
     $ExtSchema | Out-File "$($LabScriptPath)\ExtSchema.ps1"
 
     $InstallCM += $SBInstallCMParams
     $InstallCM += $SBScriptTemplateBegin.ToString()
     $InstallCM += $SBInstallCM.ToString()
-    $InstallCM += $SCScriptTemplateEnd.ToString()
+    $InstallCM += $SBScriptTemplateEnd.ToString()
     $InstallCM | Out-File "$($LabScriptPath)\InstallCM.ps1"
 
     $CMExtras += $SBCMExtrasParams
     $CMExtras += $SBScriptTemplateBegin.ToString()
     $CMExtras += $SBCMExtras.ToString()
-    $CMExtras += $SCScriptTemplateEnd.ToString()
+    $CMExtras += $SBScriptTemplateEnd.ToString()
     $CMExtras | Out-File "$($LabScriptPath)\CMExtras.ps1"
     
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"

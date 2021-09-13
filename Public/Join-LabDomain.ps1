@@ -80,13 +80,13 @@ function Join-LabDomain {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -115,7 +115,7 @@ function Join-LabDomain {
     $JoinDomain += $SBJoinDomainParams
     $JoinDomain += $SBScriptTemplateBegin.ToString()
     $JoinDomain += $SBJoinDomain.ToString()
-    $JoinDomain += $SCScriptTemplateEnd.ToString()
+    $JoinDomain += $SBScriptTemplateEnd.ToString()
     $JoinDomain | Out-File "$($LabScriptPath)\JoinDomain.ps1"
 
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"

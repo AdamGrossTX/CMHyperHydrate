@@ -1,5 +1,4 @@
 function Add-LabAdditionalApps {
-
     [cmdletbinding()]
     param (
 
@@ -75,13 +74,13 @@ function Add-LabAdditionalApps {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -110,7 +109,7 @@ function Add-LabAdditionalApps {
     $InstallAdditionalApps += $SBDefaultParams
     $InstallAdditionalApps += $SBScriptTemplateBegin.ToString()
     $InstallAdditionalApps += $SBInstallAdditionalApps.ToString()
-    $InstallAdditionalApps += $SCScriptTemplateEnd.ToString()
+    $InstallAdditionalApps += $SBScriptTemplateEnd.ToString()
     $InstallAdditionalApps | Out-File "$($LabScriptPath)\InstallAdditionalApps.ps1"
 
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"

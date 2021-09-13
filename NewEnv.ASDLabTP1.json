@@ -50,7 +50,21 @@
                     "VMName"        : "RRAS",
                     "VMOS"          : "Server",
                     "VMRoles"       : "RRAS",
+                    "VMHDDSize"     : "25gb",
                     "VMIPLastOctet" : "1",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "1",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                },
+                {
+                    "VMID"          : "VM2",
+                    "VMName"        : "DC01",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "DC,CA",
+                    "VMHDDSize"     : "25gb",
+                    "VMIPLastOctet" : "12",
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
                     "ProcessorCount" : "1",
@@ -61,8 +75,9 @@
                     "VMID"          : "VM2",
                     "VMName"        : "CM01",
                     "VMOS"          : "Server",
-                    "VMRoles"       : "DC,CA,SQL,ADK,PE,CM",
-                    "VMIPLastOctet" : "12",
+                    "VMRoles"       : "SQL,ADK,PE,CM",
+                    "VMHDDSize"     : "150gb",
+                    "VMIPLastOctet" : "13",
                     "CMSiteCode"    : "PS1",
                     "CMVersion"     : "TP",
                     "CMPreReqPreDL" : "1",
@@ -71,8 +86,10 @@
                     "StartupMemory" : "16gb",
                     "ProcessorCount" : "4",
                     "Generation"    : "2",
-                    "AutoStartup"   : "1"
+                    "AutoStartup"   : "1",
+                    "AddWSUS"       : "0"
                 }
+
             ]
         }
     ]

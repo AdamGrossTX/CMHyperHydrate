@@ -75,13 +75,13 @@ function Add-LabRoleRRAS {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -92,7 +92,7 @@ function Add-LabRoleRRAS {
     $SBInstallRRAS = {
         Install-WindowsFeature Routing,RSAT-RemoteAccess-Mgmt -IncludeManagementTools
         Get-NetAdapter -Physical -Name "Ethernet" | Rename-NetAdapter -newname "External"
-        Install-RemoteAccess -VpnType VPN
+        Install-RemoteAccess -VpnType RoutingOnly
         netsh routing ip nat install
         netsh routing ip nat add interface "External"
         netsh routing ip nat set interface "External" mode=full
@@ -104,7 +104,7 @@ function Add-LabRoleRRAS {
     $InstallRRAS += $SBDefaultParams
     $InstallRRAS += $SBScriptTemplateBegin.ToString()
     $InstallRRAS += $SBInstallRRAS.ToString()
-    $InstallRRAS += $SCScriptTemplateEnd.ToString()
+    $InstallRRAS += $SBScriptTemplateEnd.ToString()
     $InstallRRAS | Out-File "$($LabScriptPath)\InstallRRAS.ps1"
     
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"

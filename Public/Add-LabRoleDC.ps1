@@ -95,13 +95,13 @@ function Add-LabRoleDC {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -189,31 +189,31 @@ function Add-LabRoleDC {
     $SetDCIP += $SBSetDCIPParams
     $SetDCIP += $SBScriptTemplateBegin.ToString()
     $SetDCIP += $SBSetDCIP.ToString()
-    $SetDCIP += $SCScriptTemplateEnd.ToString()
+    $SetDCIP += $SBScriptTemplateEnd.ToString()
     $SetDCIP | Out-File "$($LabScriptPath)\SetDCIP.ps1"
 
     $AddDCFeatures += $SBDefaultParams
     $AddDCFeatures += $SBScriptTemplateBegin.ToString()
     $AddDCFeatures += $SBAddDCFeatures.ToString()
-    $AddDCFeatures += $SCScriptTemplateEnd.ToString()
+    $AddDCFeatures += $SBScriptTemplateEnd.ToString()
     $AddDCFeatures | Out-File "$($LabScriptPath)\AddDCFeatures.ps1"
 
     $DCPromo += $SBDCPromoParams
     $DCPromo += $SBScriptTemplateBegin.ToString()
     $DCPromo += $SBDCPromo.ToString()
-    $DCPromo += $SCScriptTemplateEnd.ToString()
+    $DCPromo += $SBScriptTemplateEnd.ToString()
     $DCPromo | Out-File "$($LabScriptPath)\DCPromo.ps1"
     
     $ConfigureDHCP += $SBConfigureDHCPParams
     $ConfigureDHCP += $SBScriptTemplateBegin.ToString()
     $ConfigureDHCP += $SBConfigureDHCP.ToString()
-    $ConfigureDHCP += $SCScriptTemplateEnd.ToString()
+    $ConfigureDHCP += $SBScriptTemplateEnd.ToString()
     $ConfigureDHCP | Out-File "$($LabScriptPath)\ConfigureDHCP.ps1"
 
     $CreateDCLabDomain += $SBDefaultParams
     $CreateDCLabDomain += $SBScriptTemplateBegin.ToString()
     $CreateDCLabDomain += $SBCreateDCLabDomain.ToString()
-    $CreateDCLabDomain += $SCScriptTemplateEnd.ToString()
+    $CreateDCLabDomain += $SBScriptTemplateEnd.ToString()
     $CreateDCLabDomain | Out-File "$($LabScriptPath)\CreateDCLabDomain.ps1"
 
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
@@ -246,7 +246,7 @@ function Add-LabRoleDC {
     Invoke-LabCommand -FilePath "$($LabScriptPath)\CreateDCLabDomain.ps1" -MessageText "CreateDCLabDomain" -SessionType Domain -VMID $VM.VMId
 
     $VM | Stop-VM -Force -WarningAction SilentlyContinue
-    Get-VM -VM $RRASName | Restart-VM -Force -WarningAction SilentlyContinue
+    Get-VM -VM $RRASName | Restart-VM -Force -ErrorAction SilentlyContinue
     $VM | Start-VM -WarningAction SilentlyContinue
     start-sleep -seconds 120
     

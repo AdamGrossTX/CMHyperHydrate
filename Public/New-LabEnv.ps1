@@ -25,14 +25,14 @@ function New-LabEnv {
     
     Write-Host "Starting Batch Job to Create VMs." -ForegroundColor Cyan
     Write-Host " - No status will be returned while VMs are being created. Please wait." -ForegroundColor Cyan
+    Write-Host " - Logs can be viewed in $($BaseConfig.LabPath)$($BaseConfig.VMScriptPath)\<VMNAME>\<VMName>.log" -ForegroundColor Cyan
     $Job = $Config.LabEnvConfig.ServerVMs | ForEach-Object -AsJob -ThrottleLimit 5 -Parallel {
         Import-Module $using:ModulePath -Force
-        $Config = $using:Config
         Write-Host "Creating New VM: $($_.VMName)" -ForegroundColor Cyan
         $ConfigSplat = @{
             VMConfig = $_ 
-            BaseConfig = $Config.BaseConfig
-            LabEnvConfig = $Config.LabEnvConfig
+            BaseConfig = $Using:Config.BaseConfig
+            LabEnvConfig = $Using:Config.LabEnvConfig
         }
 
         New-LabVM @ConfigSplat | Out-Null
@@ -102,8 +102,7 @@ function New-LabEnv {
     }
 #>
 
-
-Write-Host "New lab build Finished." -ForegroundColor Cyan
-Get-date
+    Write-Host "New lab build Finished." -ForegroundColor Cyan
+    (Get-date).DateTime
 
 }

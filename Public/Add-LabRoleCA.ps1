@@ -70,13 +70,13 @@ function Add-LabRoleCA {
         
         $_LogFile = "$($_LogPath)\Transcript.log";
         
-        Start-Transcript $_LogFile -Append -NoClobber -IncludeInvocationHeader | Out-Null;
+        Start-Transcript $_LogFile -Append -IncludeInvocationHeader | Out-Null;
         Write-Output "Logging to $_LogFile";
         
         #region Do Stuff Here
     }
         
-    $SCScriptTemplateEnd = {
+    $SBScriptTemplateEnd = {
         #endregion
         Stop-Transcript
     }
@@ -92,7 +92,7 @@ function Add-LabRoleCA {
     $InstallCA += $SBDefaultParams
     $InstallCA += $SBScriptTemplateBegin.ToString()
     $InstallCA += $SBInstallCA.ToString()
-    $InstallCA += $SCScriptTemplateEnd.ToString()
+    $InstallCA += $SBScriptTemplateEnd.ToString()
     $InstallCA | Out-File "$($LabScriptPath)\InstallCA.ps1"
     
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
