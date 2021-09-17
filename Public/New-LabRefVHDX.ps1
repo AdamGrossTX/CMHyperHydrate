@@ -69,7 +69,15 @@ function New-LabRefVHDX {
         else {
             Import-Module -Name 'Hyper-ConvertImage'
         }
+        Convert-WindowsImage @Params
     }
-    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
+
+    if(Test-Path $params.VhdPath) {
+        Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
+        Return $params.VhdPath
+    }
+    else {
+        Throw "Failed to create VHDX."
+    }
 }
 

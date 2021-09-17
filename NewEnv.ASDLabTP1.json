@@ -22,7 +22,7 @@
             "RefVHDXName"   : "Server2019Ref.vhdx",
             "RefIndex"      : "2",
             "RefSrcType"    : "ISO",
-            "RefHVDSize"    : "128gb",
+            "RefHVDSize"    : "25gb",
             "RefFeature"   : "NetFx3"
         }
     ],
@@ -72,7 +72,7 @@
                     "AutoStartup"   : "1"
                 },
                 {
-                    "VMID"          : "VM2",
+                    "VMID"          : "VM3",
                     "VMName"        : "CM01",
                     "VMOS"          : "Server",
                     "VMRoles"       : "SQL,ADK,PE,CM",

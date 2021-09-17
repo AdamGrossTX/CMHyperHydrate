@@ -22,6 +22,11 @@ function Add-LabRoleDC {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
+        $VMWinName = $VMConfig.VMWinName,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string]
         $IPAddress = $VMConfig.VMIPAddress,
 
         [Parameter()]
@@ -151,7 +156,7 @@ function Add-LabRoleDC {
         (
             `$_LogPath = "$($LogPath)",
             `$_DomainFQDN = "$($DomainFQDN)",
-            `$_ServerName = "$($VMName)", 
+            `$_ServerName = "$($VMWinName)", 
             `$_IPAddress = "$($IPAddress)", 
             `$_IPSubnet = "$($IPSubnet)",
             [ipaddress]`$_ScopeID = "$($IPSubnet)0",

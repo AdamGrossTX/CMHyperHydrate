@@ -129,6 +129,8 @@ function New-LabVM {
 
     Start-Transcript -Path "$($LabScriptPath)\$($VMName).log" -Force -ErrorAction SilentlyContinue | Out-Null
     Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
+    Write-Host "BaseConfig: $($BaseConfig)"
+    Write-Host "ReferenceVHDX: $($ReferenceVHDX)"
 
     $LogPath = "$($ClientDriveRoot)$($LogPath)"
     $SBDefaultParams = @"
@@ -171,7 +173,7 @@ function New-LabVM {
     param
     (
         `$_LogPath = "$($LogPath)",
-        `$_VMName = "$($VMName)"
+        `$_VMWinName = "$($VMWinName)"
     )
 "@
         $SBResizeRenameComputer = {
@@ -187,11 +189,11 @@ function New-LabVM {
             Write-Host "User Access Control (UAC) has been disabled."
             
             $MaxSize = (Get-PartitionSupportedSize -DriveLetter c).SizeMax
-            $CurrentSize = (Get-Disk).Size
+            $CurrentSize = (Get-Disk).AllocatedSize
             if($CurrentSize -lt $MaxSize) {
                 Resize-Partition -DriveLetter c -Size $MaxSize
             }
-            Rename-Computer -NewName "$($_VMName)";
+            Rename-Computer -NewName "$($_VMWinName)";
         }
 
         $ResizeRenameComputer += $SBResizeRenameComputerParams

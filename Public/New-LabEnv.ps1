@@ -7,18 +7,22 @@ function New-LabEnv {
         $ConfigFileName
     )
     
+    $OriginalPref = $ProgressPreference # Default is 'Continue'
+    $ProgressPreference = "SilentlyContinue"
+
+    try {
     Write-Host "Starting Lab Build" -ForegroundColor Yellow
 
     $ModulePath = $script:PSCommandPath
     $Config = Get-LabConfig -ConfigFileName $ConfigFileName -CreateFolders
 
-    if ($Config.BaseConfig.ServerRef.RefVHDXName -and -not $Base.SvrVHDX) {
+    if ($Config.BaseConfig.ServerRef.RefVHDXName -and -not $Config.BaseConfig.SvrVHDX) {
         New-LabUnattendXML -BaseConfig $Config.BaseConfig -LabEnvConfig $Config.LabEnvConfig
-        New-LabRefVHDX -BuildType Server -BaseConfig $Config.BaseConfig
+        $Config.BaseConfig.SvrVHDX = New-LabRefVHDX -BuildType Server -BaseConfig $Config.BaseConfig
     }
     if ($Config.BaseConfig.WorkstationRef.RefVHDXName -and -not $Base.WksVHDX) {
         New-LabUnattendXML -BaseConfig $Config.BaseConfig -LabEnvConfig $Config.LabEnvConfig
-        New-LabRefVHDX -BuildType Workstation -BaseConfig $Config.BaseConfig
+        $Config.BaseConfig.WksVHDX = New-LabRefVHDX -BuildType Workstation -BaseConfig $Config.BaseConfig
     }
 
     New-LabSwitch -LabEnvConfig $Config.LabEnvConfig
@@ -75,7 +79,7 @@ function New-LabEnv {
                 "CM" {
                     Join-LabDomain @ConfigSplat
                     Add-LabRoleCM @ConfigSplat
-                    Add-LabAdditionalApps @ConfigSplat -AppList @("vscode","snagit")
+                    Add-LabAdditionalApps @ConfigSplat -AppList @("sql-server-management-studio","vscode","snagit")
                     Break
                  }
                  Default {Write-Host "No Role Found"; Break;}
@@ -104,5 +108,13 @@ function New-LabEnv {
 
     Write-Host "New lab build Finished." -ForegroundColor Cyan
     (Get-date).DateTime
+
+}
+catch {
+
+}
+finally {
+    $ProgressPreference = $OriginalPref
+}
 
 }
