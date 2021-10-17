@@ -22,7 +22,7 @@
             "RefVHDXName"   : "Server2019Ref.vhdx",
             "RefIndex"      : "2",
             "RefSrcType"    : "ISO",
-            "RefHVDSize"    : "128gb",
+            "RefHVDSize"    : "25gb",
             "RefHFeature"   : "NetFx3",
             "RefPackage"    : "",
             "RefDriver"     : ""
@@ -52,6 +52,7 @@
                     "VMName"        : "RRAS",
                     "VMOS"          : "Server",
                     "VMRoles"       : "RRAS",
+                    "VMHDDSize"     : "25gb",
                     "VMIPLastOctet" : "1",
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
@@ -64,6 +65,7 @@
                     "VMName"        : "DC01",
                     "VMOS"          : "Server",
                     "VMRoles"       : "DC",
+                    "VMHDDSize"     : "25gb",
                     "VMIPLastOctet" : "10",
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
@@ -76,6 +78,7 @@
                     "VMName"        : "CA01",
                     "VMOS"          : "Server",
                     "VMRoles"       : "CA",
+                    "VMHDDSize"     : "25gb",
                     "VMIPLastOctet" : "11",
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
@@ -88,6 +91,7 @@
                     "VMName"        : "CM01",
                     "VMOS"          : "Server",
                     "VMRoles"       : "SQL,ADK,PE,CM",
+                    "VMHDDSize"     : "150gb",
                     "VMIPLastOctet" : "12",
                     "CMSiteCode"    : "PS1",
                     "CMVersion"     : "Prod",
@@ -97,7 +101,8 @@
                     "StartupMemory" : "16gb",
                     "ProcessorCount" : "4",
                     "Generation"    : "2",
-                    "AutoStartup"   : "1"
+                    "AutoStartup"   : "1",
+                    "AddWSUS"       : "0"
                 }
             ]
         }
