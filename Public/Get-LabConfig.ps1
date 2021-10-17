@@ -1,4 +1,4 @@
-Function Get-LabConfig {
+function Get-LabConfig {
     [cmdletBinding()]
     [OutputType([PSCustomObject])]
     param (
@@ -12,57 +12,137 @@ Function Get-LabConfig {
         [switch]
         $CreateFolders
     )
+    
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
 
-    $Config = Get-Content $ConfigFileName -Raw | ConvertFrom-Json
-    $ENVConfig = $Config.ENVConfig | Where-Object {$_.ENV -eq $Config.ENVToBuild}
-    $SvrRefConfig = $Config.ServerRef
-    $WksRefConfig = $Config.WorkstationRef
-    $Script:SvrVMs = $ENVConfig.ServerVMList
-    $Script:WksVMs = $ENVConfig.WorkstationVMList
+    $RawConfig = Get-Content $ConfigFileName -Raw | ConvertFrom-Json
+    $RawENVConfig = $RawConfig.ENVConfig | Where-Object {$_.ENV -eq $RawConfig.ENVToBuild}
+    $RawSvrRefConfig = $RawConfig.ServerRef
+    $RawWksRefConfig = $RawConfig.WorkstationRef
  
-    $Script:base = @{}
-    $Script:env = @{}
-    ($Config | Select-Object -Property * -ExcludeProperty "ENVConfig", "VMList", "ServerRef", "WorkstationRef").psobject.properties | ForEach-Object {$Base[$_.Name] = $_.Value}
-    ($ENVConfig  | Select-Object -Property * -ExcludeProperty  "ServerVMList", "WorkstationVMList").psobject.properties | ForEach-Object {$env[$_.Name] = $_.Value}
+    $BaseConfig = @{}
+    $LabEnvConfig = @{}
+    $ServerRefConfig = @{}
+    $WorkstationRefConfig = @{}
 
-    $Script:SvrRef = @{}
-    ForEach ($Img in $SvrRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$SvrRef[$_.Name] = $_.Value}
+    ($RawConfig | Select-Object -Property * -ExcludeProperty "ENVConfig", "VMList", "ServerRef", "WorkstationRef").psobject.properties | foreach-Object {$BaseConfig[$_.Name] = $_.Value}
+    ($RawENVConfig  | Select-Object -Property * -ExcludeProperty  "ServerVMList", "WorkstationVMList").psobject.properties | foreach-Object {$LabEnvConfig[$_.Name] = $_.Value}
+
+    foreach ($Img in $RawSvrRefConfig) {
+        ($Img).psobject.properties | foreach-Object {$ServerRefConfig[$_.Name] = $_.Value}
     }
 
-    $Script:WksRef = @{}
-    ForEach ($Img in $WksRefConfig) {
-        ($Img).psobject.properties | ForEach-Object {$WksRef[$_.Name] = $_.Value}
+    foreach ($Img in $RawWksRefConfig) {
+        ($Img).psobject.properties | foreach-Object {$WorkstationRefConfig[$_.Name] = $_.Value}
     }
 
-    $base["ConfigMgrCBPrereqsPath"] = "$($base.PathConfigMgr)\Prereqs"
-    $base["ConfigMgrTPPrereqsPath"] = "$($base.PathConfigMgrTP)\Prereqs"
+    $BaseConfig["ConfigMgrCBPrereqsPath"] = "$($BaseConfig.PathConfigMgr)\Prereqs"
+    $BaseConfig["ConfigMgrTPPrereqsPath"] = "$($BaseConfig.PathConfigMgrTP)\Prereqs"
 
-    ForEach ($key in @($base.keys)) {
+    foreach ($key in @($BaseConfig.keys)) {
         If ($key -like "Path*")
         {
-            $Base[$key] = $Base.SourcePath + $Base[$key]
-            If($CreateFolders) {
-                If(!(Test-Path -path $Base[$key])) {New-Item -path $Base[$key] -ItemType Directory;}
+            $BaseConfig[$key] = $BaseConfig.SourcePath + $BaseConfig[$key]
+            if ($CreateFolders) {
+                if (-not (Test-Path -path $BaseConfig[$key])) {New-Item -path $BaseConfig[$key] -ItemType Directory;}
             }
         }
     }
 
-    $base["VMPath"] = "$($base.LabPath)\$($env.Env)"
-    $base["SQLISO"] = Get-ChildItem -Path $base.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["SvrISO"] = Get-ChildItem -Path $base.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["WinISO"] = Get-ChildItem -Path $base.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $base["Packages"] = Get-ChildItem -Path $base.Packages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
-    $base["Drivers"] = Get-ChildItem -Path $base.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
-    $base["SvrVHDX"] = "$($base.PathRefImage)\$($SvrRef.RefVHDXName)"
-    $base["WksVHDX"] = "$($base.PathRefImage)\$($WksRef.RefVHDXName)"
+    $BaseConfig["VMPath"] = Join-Path -Path $BaseConfig.LabPath -ChildPath $BaseConfig.ENVToBuild
+    $BaseConfig["SQLISO"] = Get-ChildItem -Path $BaseConfig.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $BaseConfig["SvrISO"] = Get-ChildItem -Path $BaseConfig.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $BaseConfig["WinISO"] = Get-ChildItem -Path $BaseConfig.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $BaseConfig["Packages"] = Get-ChildItem -Path $BaseConfig.PathPackages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
+    $BaseConfig["Drivers"] = Get-ChildItem -Path $BaseConfig.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
+    $BaseConfig["SvrVHDX"] = Get-ChildItem -Path $BaseConfig.PathRefImage | Where-Object {$_.Name -eq $ServerRefConfig.RefVHDXName} |  Select-Object -ExpandProperty FullName
+    $BaseConfig["WksVHDX"] = Get-ChildItem -Path $BaseConfig.PathRefImage | Where-Object {$_.Name -eq $WorkstationRefConfig.RefVHDXName} |  Select-Object -ExpandProperty FullName
 
-    $base["LocalAdminName"] = "Administrator"
-    $base["LocalAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
-    $base["LocalAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.LocalAdminName, $base.LocalAdminPassword)
+    $BaseConfig["LocalAdminName"] = ".\$($LabEnvConfig.EnvAdminName)"
+    $BaseConfig["LocalAdminPassword"] = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
+    $BaseConfig["LocalAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($BaseConfig.LocalAdminName, $BaseConfig.LocalAdminPassword)
 
-    $base["DomainAdminName"] = "$($Env.EnvNetBios)\$($Env.EnvAdminName)"
-    $base["DomainAdminPassword"] = ConvertTo-SecureString -String $env.EnvAdminPW -AsPlainText -Force
-    $base["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($base.DomainAdminName,$base.DomainAdminPassword)
-        
+    $BaseConfig["DomainAdminName"] = "$($LabEnvConfig.EnvNetBios)\$($LabEnvConfig.EnvAdminName)"
+    $BaseConfig["DomainAdminPassword"] = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
+    $BaseConfig["DomainAdminCreds"] = new-object -typename System.Management.Automation.PSCredential($BaseConfig.DomainAdminName,$BaseConfig.DomainAdminPassword)
+
+    $ServerVMs = $RawENVConfig.ServerVMList | ForEach-Object {
+        $VMConfig = [PSCustomObject]@{}
+        ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
+        $VMConfig | Add-Member -NotePropertyName "SvrVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+
+        $VMConfig.SvrVHDX = $BaseConfig.SvrVHDX
+        $VMConfig.VMIPAddress = "$($LabEnvConfig.EnvIPSubnet)$($_.VMIPLastOctet)"
+        $VMConfig.VMWinName = "$($_.VMName)"
+        $VMConfig.VMName = "$($LabEnvConfig.Env)-$($_.VMName)"
+        $VMConfig.VMHDPath = "$($BaseConfig.VMPath)\$($VMConfig.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($VMConfig.VMName)c.vhdx"
+        $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
+        $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
+        $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig
+    }
+
+    #TODO
+    <#
+    $WksVMs = $RawENVConfig.WorkstationVMList | ForEach-Object {
+        $VMConfig = [PSCustomObject]@{}
+        ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
+        $VMConfig | Add-Member -NotePropertyName "WksVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VMHDName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+
+        $VMConfig.SvrVHDX = $BaseConfig.SvrVHDX
+        $VMConfig.VMIPAddress = "$($LabEnvConfig.EnvIPSubnet)$($_.VMIPLastOctet)"
+        $VMConfig.VMWinName = "$($_.VMName)"
+        $VMConfig.VMName = "$($LabEnvConfig.Env)-$($_.VMName)"
+        $VMConfig.VMHDPath = "$($BaseConfig.VMPath)\$($_.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($_.VMName)c.vhdx"
+        $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
+        $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
+        $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig
+    }
+
+
+    $VMs = Get-VM
+    $VLans = foreach ($VM in $VMs) {
+        $VM | Get-VMNetworkAdapterVlan | Select -ExpandProperty AccessVlanId
+    }
+
+    $LabEnvConfig["VLanID"] =  if ($VLans) {
+        ($VLans | Measure-Object -Maximum).Maximum + 1
+    }
+    else {
+        1
+    }
+    #>
+    
+    #Setting these to avoiding needing to pass in creds with each lab connection test
+    $Script:LocalAdminCreds = $BaseConfig.LocalAdminCreds
+    $Script:DomainAdminCreds = $BaseConfig.DomainAdminCreds
+
+    $Config = @{}
+    $Config["BaseConfig"] = $BaseConfig
+    $Config.BaseConfig["ServerRef"] = $ServerRefConfig
+    $Config.BaseConfig["WorkstationRef"] = $WorkstationRefConfig
+
+    $Config["LabEnvConfig"] = $LabEnvConfig
+    $Config.LabEnvConfig["ServerVMs"] = $ServerVMs
+    $Config.LabEnvConfig["WorkstationVMs"] = $WorkstationVMs
+    return $Config
 }

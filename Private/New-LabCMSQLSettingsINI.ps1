@@ -1,19 +1,19 @@
 function New-LabCMSQLSettingsINI {
-    param(
+    param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $DomainNetBiosName =  $Script:Env.EnvFQDN,
+        $DomainNetBiosName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $UserName = $Script:base.DomainAdminName,
+        $UserName,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $Password = $Script:Env.EnvAdminPW
+        $Password
     )
 
     $SQLHash = @{'ACTION'                = '"Install"';
@@ -64,7 +64,7 @@ function New-LabCMSQLSettingsINI {
     }
     $SQLHASHINI = @{'OPTIONS' = $SQLHash}
     $SQLInstallINI = ""
-    Foreach ($i in $SQLHASHINI.keys) {
+    foreach ($i in $SQLHASHINI.keys) {
         $SQLInstallINI += "[$i]`r`n"
         foreach ($j in $($SQLHASHINI[$i].keys | Sort-Object)) {
             $SQLInstallINI += "$j=$($SQLHASHINI[$i][$j])`r`n"

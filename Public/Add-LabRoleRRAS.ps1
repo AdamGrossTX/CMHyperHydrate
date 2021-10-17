@@ -1,7 +1,7 @@
-function Add-LabAdditionalApps {
+function Add-LabRoleRRAS {
     [cmdletbinding()]
     param (
-
+        
         [Parameter()]
         [PSCustomObject]
         $VMConfig,
@@ -13,7 +13,7 @@ function Add-LabAdditionalApps {
         [Parameter()]
         [hashtable]
         $LabEnvConfig,
-
+        
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
@@ -22,12 +22,12 @@ function Add-LabAdditionalApps {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ClientDriveRoot = "c:",
+        $InternetSwitchName = $LabEnvConfig.InternetSwitchName,
 
         [Parameter()]
-        [ValidateSet("sql-server-management-studio","vscode","snagit","postman")]
-        [string[]]
-        $AppList,
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $DomainFQDN = $LabEnvConfig.EnvFQDN,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -52,8 +52,9 @@ function Add-LabAdditionalApps {
     )
 
     #region Standard Setup
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
     $LabScriptPath = "$($LabPath)$($ScriptPath)\$($VMName)"
-    $ClientScriptPath = "$($ClientDriveRoot)$($ScriptPath)"
+    $ClientScriptPath = "C:$($ScriptPath)"
     
     if (-not (Test-Path -Path "$($LabScriptPath)")) {
         New-Item -Path "$($LabScriptPath)" -ItemType Directory -ErrorAction SilentlyContinue
@@ -86,32 +87,26 @@ function Add-LabAdditionalApps {
     }
     
     #endregion
-
-    $_AppList = $AppList -join '","'
-    $SBDefaultParams = @"
-    param
-    (
-        `$_LogPath = "$($LogPath)",
-        `$_AppList = @("$($_AppList)")
-    )
-"@
-    
+        
     #region Script Blocks
-    $SBInstallAdditionalApps = {
-        Set-ExecutionPolicy Bypass -Scope Process -Force; 
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        choco upgrade chocolatey -y -f
-        ForEach($app in $_AppList) {
-            choco install "$($app)" -y -f
-        }
+    $SBInstallRRAS = {
+        Install-WindowsFeature Routing,RSAT-RemoteAccess-Mgmt -IncludeManagementTools
+        Get-NetAdapter -Physical -Name "Ethernet" | Rename-NetAdapter -newname "External"
+        Install-RemoteAccess -VpnType RoutingOnly
+        netsh routing ip nat install
+        netsh routing ip nat add interface "External"
+        netsh routing ip nat set interface "External" mode=full
+        Set-LocalUser -Name "Administrator" -PasswordNeverExpires 1
+        Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon -Type DWord -Value 1 -Force
+        Set-ItemProperty -Path Registry::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\RemoteAccess\Parameters -Name ModernStackEnabled -Value 0 -Type DWord -Force
     }
 
-    $InstallAdditionalApps += $SBDefaultParams
-    $InstallAdditionalApps += $SBScriptTemplateBegin.ToString()
-    $InstallAdditionalApps += $SBInstallAdditionalApps.ToString()
-    $InstallAdditionalApps += $SBScriptTemplateEnd.ToString()
-    $InstallAdditionalApps | Out-File "$($LabScriptPath)\InstallAdditionalApps.ps1"
-
+    $InstallRRAS += $SBDefaultParams
+    $InstallRRAS += $SBScriptTemplateBegin.ToString()
+    $InstallRRAS += $SBInstallRRAS.ToString()
+    $InstallRRAS += $SBScriptTemplateEnd.ToString()
+    $InstallRRAS | Out-File "$($LabScriptPath)\InstallRRAS.ps1"
+    
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
     #endregion
@@ -126,8 +121,13 @@ function Add-LabAdditionalApps {
         Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "$($ClientScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
     }
 
-    Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallAdditionalApps.ps1" -MessageText "InstallAdditionalApps" -SessionType Domain -VMID $VM.VMId
+    $Adapter = Get-VMNetworkAdapter -VMName $VMName
+    $Adapter | Connect-VMNetworkAdapter -SwitchName $InternetSwitchName
+    $Adapter | Set-VMNetworkAdapter -DeviceNaming On
+    $Adapter | Set-VMNetworkAdapterVlan -Untagged
+    $Adapter | Rename-VMNetworkAdapter -NewName "Internet"
 
-    Write-Host "Install Additional Apps Complete!"
+    Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallRRAS.ps1" -MessageText "InstallRRAS" -SessionType Local -VMID $VM.VMId
 
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

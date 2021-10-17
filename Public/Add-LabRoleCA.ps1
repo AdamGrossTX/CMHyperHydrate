@@ -1,4 +1,4 @@
-function Join-LabDomain {
+function Add-LabRoleCA {
     [cmdletbinding()]
     param (
         
@@ -27,7 +27,7 @@ function Join-LabDomain {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $BaseConfig.LocalAdminCreds,
+        $DomainAdminCreds = $BaseConfig.DomainAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -42,17 +42,7 @@ function Join-LabDomain {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $LabPath = $BaseConfig.LabPath,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $DomainAdminName = "$($LabEnvConfig.EnvNetBios)\Administrator",
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string]
-        $DomainAdminPassword = $LabEnvConfig.EnvAdminPW
+        $LabPath = $BaseConfig.LabPath
 
     )
 
@@ -92,49 +82,35 @@ function Join-LabDomain {
     }
     
     #endregion
-
+        
     #region Script Blocks
-    $SBJoinDomainParams = @"
-        param
-        (
-            `$_LogPath = "$($LogPath)",
-            `$_FQDN = "$($DomainFQDN)",
-            `$_DomainAdminName = "$($DomainAdminName)",
-            `$_DomainAdminPassword = "$($DomainAdminPassword)"
-        )
-"@
-
-    $SBJoinDomain = {
-        $_Password = ConvertTo-SecureString -String $_DomainAdminPassword -AsPlainText -Force
-        $_Creds = new-object -typename System.Management.Automation.PSCredential($_DomainAdminName,$_Password)
-        Add-Computer -Credential $_Creds -DomainName $_FQDN -Restart
-        $DomainJoined = (((Get-ComputerInfo).CsDomainRole -eq "PrimaryDomainController") -or (Test-ComputerSecureChannel -ErrorAction SilentlyContinue))
-        Return $DomainJoined
+    $SBInstallCA = {
+        Add-WindowsFeature -Name Adcs-Cert-Authority -IncludeManagementTools;
+        Install-AdcsCertificationAuthority -CAType EnterpriseRootCA -KeyLength 2048 -HashAlgorithm SHA1 -CryptoProviderName "RSA#Microsoft Software Key Storage Provider" -ValidityPeriod Years -ValidityPeriodUnits 5 -Force -confirm:$false
     }
 
-    $JoinDomain += $SBJoinDomainParams
-    $JoinDomain += $SBScriptTemplateBegin.ToString()
-    $JoinDomain += $SBJoinDomain.ToString()
-    $JoinDomain += $SBScriptTemplateEnd.ToString()
-    $JoinDomain | Out-File "$($LabScriptPath)\JoinDomain.ps1"
-
+    $InstallCA += $SBDefaultParams
+    $InstallCA += $SBScriptTemplateBegin.ToString()
+    $InstallCA += $SBInstallCA.ToString()
+    $InstallCA += $SBScriptTemplateEnd.ToString()
+    $InstallCA | Out-File "$($LabScriptPath)\InstallCA.ps1"
+    
     $Scripts = Get-Item -Path "$($LabScriptPath)\*.*"
 
     #endregion
 
     $VM = Get-VM -VM $VMName
     $VM | Start-VM -WarningAction SilentlyContinue
-    start-sleep 20
+    start-sleep 10
 
-    $DomainJoined = $False
-    while (-not (Invoke-Command -VMName $VMName -Credential $LocalAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
-    do {
-            foreach ($Script in $Scripts) {
-                Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
-            }
-            $DomainJoined = Invoke-LabCommand -FilePath "$($LabScriptPath)\JoinDomain.ps1" -MessageText "JoinDomain" -SessionType Local -VMID $VM.VMId
-    } until ($DomainJoined)
+    while (-not (Invoke-Command -VMName $VMName -Credential $DomainAdminCreds {Get-Process "LogonUI" -ErrorAction SilentlyContinue;})) {Start-Sleep -seconds 5}
+    
+    foreach ($Script in $Scripts) {
+        Copy-VMFile -VM $VM -SourcePath $Script.FullName -DestinationPath "C:$($ScriptPath)\$($Script.Name)" -CreateFullPath -FileSource Host -Force
+    }
 
-    Start-Sleep -Seconds 60
+    Invoke-LabCommand -FilePath "$($LabScriptPath)\InstallCA.ps1" -MessageText "InstallCA" -SessionType Domain -VMID $VM.VMId
+
+    #TODO  Create-PKICertTemplate
     Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

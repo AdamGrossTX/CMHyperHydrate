@@ -1,4 +1,4 @@
-Function Write-LogEntry {
+function Write-LogEntry {
 [cmdletBinding()]
     param (
         [parameter()]
@@ -31,7 +31,7 @@ Function Write-LogEntry {
     $UtcOffset = $UtcValue.Substring(21, $UtcValue.Length - 21)
     $scriptname = (Get-PSCallStack)[1]
     $logline = `
-        "<![LOG[$message]LOG]!>" + `
+        "<-not [LOG[$message]LOG]-not >" + `
         "<time=`"$(Get-Date -Format HH:mm:ss.fff)$($UtcOffset)`" " + `
         "date=`"$(Get-Date -Format M-d-yyyy)`" " + `
         "component=`"$($scriptname.Command)`" " + `

@@ -1,6 +1,6 @@
-Function Invoke-LabCommand {
+function Invoke-LabCommand {
     [cmdletbinding()]
-    Param (
+    param (
 
         [Parameter()]
         [string]
@@ -15,8 +15,8 @@ Function Invoke-LabCommand {
         $FilePath,
 
         [Parameter()]
-        [Guid[]]
-        $VMID,
+        [Guid]
+        $VMId,
 
         [Parameter()]
         [System.Object[]]
@@ -27,19 +27,15 @@ Function Invoke-LabCommand {
         [string]
         $SessionType = 'Domain',
 
-        [parameter()]
-        [string]
-        $VMName = $Script:VMConfig.VMName,
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [pscredential]
+        $LocalAdminCreds = $Script:LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds
+        $DomainAdminCreds = $Script:DomainAdminCreds
         
     )
 
@@ -47,7 +43,7 @@ Function Invoke-LabCommand {
     Write-Host "Started - $($MessageText)" | out-null
     $Result = $Null
 
-    If(Test-LabConnection -Type $SessionType -VMName $VMName) {
+    if (Test-LabConnection -Type $SessionType -VMId $VMId) {
         $Creds = Switch($SessionType) {
             "Local" {$LocalAdminCreds;break;}
             "Domain" {$DomainAdminCreds;break;}
@@ -55,25 +51,24 @@ Function Invoke-LabCommand {
         }
 
         Write-Host "Invoking Remote Command" | out-null
-        Try {
-            if($ScriptBlock) {
+        try {
+            if ($ScriptBlock) {
                 $Result = Invoke-Command -VMID $VMID -ScriptBlock $ScriptBlock -ArgumentList $ArgumentList -Credential $Creds
             }
             else {
                 $Result = Invoke-Command -VMId $VMID -Credential $Creds -FilePath $FilePath
             }
         }
-        Catch {
+        catch {
             Write-Warning $_.Exception.Message | out-null
             break;
         }
 
         Write-Host "Remote Command Completed" | out-null
     }
-    Else {
+    else {
         $Result = "Error"
     }
     Write-Host "Completed - $($MessageText)" | out-null
-    Return $Result
-    
+    return $Result
 }

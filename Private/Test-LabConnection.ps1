@@ -1,5 +1,5 @@
 #https://blogs.technet.microsoft.com/virtualization/2016/10/11/waiting-for-vms-to-restart-in-a-complex-configuration-script-with-powershell-direct/
-Function Test-LabConnection {
+function Test-LabConnection {
     [cmdletbinding()]
     param (
         [parameter()]
@@ -7,41 +7,43 @@ Function Test-LabConnection {
         [string]
         $Type = 'Domain',
         
-        [parameter()]
-        [string]
-        $VMName = $Script:VMConfig.VMName,
+        [Parameter()]
+        [Guid]
+        $VMId,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $LocalAdminCreds = $Script:base.LocalAdminCreds,
+        $LocalAdminCreds = $Script:LocalAdminCreds,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [pscredential]
-        $DomainAdminCreds = $Script:base.DomainAdminCreds
+        $DomainAdminCreds = $Script:DomainAdminCreds
     )
 
-    $VM = Get-VM -Name $VMName
+    $Password = ConvertTo-SecureString -String $LabEnvConfig.EnvAdminPW -AsPlainText -Force
+    $LocalAdminCreds = new-object -typename System.Management.Automation.PSCredential($BaseConfig.LocalAdminName, $Password)
 
-    $Connected = $false
+    $VM = Get-VM -Id $VMId
+    
     $Creds = Switch($Type) {
         "Local" {$LocalAdminCreds; break;}
         "Domain" {$DomainAdminCreds; break;}
         default {break;}
     }
 
-    Try {
-        if($VM.State -eq "Off") {
+    try {
+        if ($VM.State -eq "Off") {
             write-Host "VM Not Running. Starting VM."
-            Start-VM -Name $VMName
+            $VM | Start-VM -WarningAction SilentlyContinue
         }
 
         # Wait for the VM's heartbeat integration component to come up if it is enabled
         $heartbeatic  = (Get-VMIntegrationService -VM $VM | Where-Object Id -match "84EAAE65-2F2E-45F5-9BB5-0E857DC8EB47")
-        If ($heartbeatic -and ($heartbeatic.Enabled -eq $true)) {
+        if ($heartbeatic -and ($heartbeatic.Enabled -eq $true)) {
             $startTime = Get-Date
-            Do {
+            do {
                 $timeElapsed = $(Get-Date) - $startTime
                 if ($($timeElapsed).TotalMinutes -ge 10) {
                     Write-Host "Integration components did not come up after 10 minutes" -MessageType Error
@@ -49,10 +51,10 @@ Function Test-LabConnection {
                 } 
                 Start-Sleep -sec 1
             } 
-            Until ($heartbeatic.PrimaryStatusDescription -eq "OK")
+            until ($heartbeatic.PrimaryStatusDescription -eq "OK")
             Write-Host "Heartbeat IC connected."
         }
-        Do {
+        do {
             Write-Host "Testing $($Type) Connection."
         
             $timeElapsed = $(Get-Date) - $startTime
@@ -61,9 +63,9 @@ Function Test-LabConnection {
                 throw
             } 
             Start-Sleep -sec 1
-            $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock { $True } -ErrorAction SilentlyContinue
-            If($Type -eq 'Domain') {
-                 Invoke-Command -VMId $VM.VMId -Credential $Creds -ScriptBlock {  
+            $psReady = Invoke-Command -VMId $VM.VMId -Credential $Creds -ErrorAction SilentlyContinue -ScriptBlock { $True } 
+            if ($Type -eq 'Domain') {
+                 Invoke-Command -VMId $VM.VMId -Credential $Creds -ErrorAction SilentlyContinue -ScriptBlock {  
                     do {
                         Write-Host "." -NoNewline -ForegroundColor Gray
                         Start-Sleep -Seconds 5
@@ -78,10 +80,10 @@ Function Test-LabConnection {
         until ($psReady)
     }
 
-    Catch {
+    catch {
         Write-Warning $_.Exception.Message
         break;
     }
 
-    Return $psReady
+    return $psReady
 }

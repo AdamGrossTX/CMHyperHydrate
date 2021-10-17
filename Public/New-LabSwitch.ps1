@@ -1,19 +1,36 @@
-Function New-LabSwitch {
+function New-LabSwitch {
 [cmdletbinding()]
 Param
 (
+
+    [Parameter()]
+    [hashtable]
+    $LabEnvConfig,
+    
     [Parameter()]
     [String]
-    $SwitchName = $Script:Env.EnvSwitchName,
+    $SwitchName = $LabEnvConfig.EnvSwitchName,
 
     [Parameter()]
     [String]
-    $IPSubnet = $Script:Env.EnvIPSubnet
+    $IPSubnet = $LabEnvConfig.EnvIPSubnet,
+
+    [Parameter()]
+    [String]
+    $RRASName = $LabEnvConfig.RRASName,
+    
+    [Parameter()]
+    [Switch]
+    $RemoveExisting
 
 )
-        Get-NetNat -Name $SwitchName -ErrorAction SilentlyContinue | Remove-NetNat -Confirm:$false -ErrorAction SilentlyContinue
-        Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue | Remove-VMSwitch -Confirm:$False -Force -ErrorAction SilentlyContinue
+
+    Write-Host "Starting $($MyInvocation.MyCommand)" -ForegroundColor Cyan
+
+    $ExistingSwitch = Get-VMSwitch -Name $SwitchName -ErrorAction SilentlyContinue
+    if (-not $ExistingSwitch) {
         New-VMSwitch -Name $SwitchName -SwitchType Internal | Out-Null
-        #New-NetIPAddress -IPAddress "$($IPSubnet)`1" -PrefixLength 24 -InterfaceAlias "vEthernet ($($SwitchName))"
-        #New-NetNAT -Name $SwitchName -InternalIPInterfaceAddressPrefix "$($IPSubnet)0`/24"
+    }
+
+    Write-Host "$($MyInvocation.MyCommand) Complete!" -ForegroundColor Cyan
 }

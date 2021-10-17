@@ -1,0 +1,110 @@
+{
+    "ENVToBuild"        : "ASDLab1",
+    "LabPath"           : "D:\\Labs",
+    "SourcePath"        : "C:\\Labs",
+    "PathSQL"           : "\\Media\\ISO\\SQL",
+    "PathSvr"           : "\\Media\\ISO\\Server",
+    "PathWin10"         : "\\Media\\ISO\\Windows10",
+    "PathADK"           : "\\Media\\ADK",
+    "PathADKWinPE"      : "\\Media\\ADKWinPE",
+    "PathConfigMgrTP"   : "\\Media\\ConfigMgrTP",
+    "PathConfigMgrCB"   : "\\Media\\ConfigMgrCB",
+    "PathPackages"      : "\\Media\\Packages",
+    "PathDrivers"       : "\\Media\\Drivers",
+    "PathRefImage"      : "\\ReferenceImage",
+    "VMDataPath"        : "\\Data",
+    "VMLogPath"         : "\\Data\\Logs",
+    "VMScriptPath"      : "\\Data\\Scripts",
+    "ServerRef"         : [
+        {
+            "RefID"         : "2019",
+            "RefName"       : "Windows Server 2019",
+            "RefVHDXName"   : "Server2019Ref.vhdx",
+            "RefIndex"      : "2",
+            "RefSrcType"    : "ISO",
+            "RefHVDSize"    : "25gb",
+            "RefHFeature"   : "NetFx3",
+            "RefPackage"    : "",
+            "RefDriver"     : ""
+        }
+    ],
+    "ENVConfig"         : [
+        {
+            "Env"           : "ASDLab1",
+            "EnvSwitchName" : "ASDLab1",
+            "EnvNetBios"    : "ASD",
+            "EnvFQDN"       : "ASD.lab",
+            "EnvIPSubnet"   : "172.90.10.",
+            "EnvAdminName"  : "Administrator",
+            "EnvAdminPW"    : "P@ssw0rd",
+            "EnvTimeZone"   : "Central Standard Time",
+            "InputLocale"   : "0409:00000409",
+            "SystemLocale"  : "en-us",
+            "UILanguage"    : "en-us",
+            "UILanguageFB"  : "en-us",
+            "UserLocale"    : "en-us",
+            "VLANID"        : "4",
+            "RRASName"      : "ASDLab1-RRAS",
+            "InternetSwitchName" : "LAB - Realtek USB",
+            "ServerVMList": [
+                {
+                    "VMID"          : "VM1",
+                    "VMName"        : "RRAS",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "RRAS",
+                    "VMHDDSize"     : "25gb",
+                    "VMIPLastOctet" : "1",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "1",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                },
+                {
+                    "VMID"          : "VM2",
+                    "VMName"        : "DC01",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "DC",
+                    "VMHDDSize"     : "25gb",
+                    "VMIPLastOctet" : "10",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "1",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                },
+                {
+                    "VMID"          : "VM3",
+                    "VMName"        : "CA01",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "CA",
+                    "VMHDDSize"     : "25gb",
+                    "VMIPLastOctet" : "11",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "1",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1"
+                },
+                {
+                    "VMID"          : "VM4",
+                    "VMName"        : "CM01",
+                    "VMOS"          : "Server",
+                    "VMRoles"       : "SQL,ADK,PE,CM",
+                    "VMHDDSize"     : "150gb",
+                    "VMIPLastOctet" : "12",
+                    "CMSiteCode"    : "PS1",
+                    "CMVersion"     : "Prod",
+                    "CMPreReqPreDL" : "1",
+                    "CMPreReqPath"  : "1",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "16gb",
+                    "ProcessorCount" : "4",
+                    "Generation"    : "2",
+                    "AutoStartup"   : "1",
+                    "AddWSUS"       : "0"
+                }
+            ]
+        }
+    ]
+}
