@@ -25,12 +25,12 @@ function New-LabEnv {
         $Config.BaseConfig.WksVHDX = New-LabRefVHDX -BuildType Workstation -BaseConfig $Config.BaseConfig
     }
 
-    New-LabSwitch -LabEnvConfig $Config.LabEnvConfig
+    <#New-LabSwitch -LabEnvConfig $Config.LabEnvConfig#>
     
     Write-Host "Starting Batch Job to Create VMs." -ForegroundColor Cyan
     Write-Host " - No status will be returned while VMs are being created. Please wait." -ForegroundColor Cyan
     Write-Host " - Logs can be viewed in $($BaseConfig.LabPath)$($BaseConfig.VMScriptPath)\<VMNAME>\<VMName>.log" -ForegroundColor Cyan
-    $Job = $Config.LabEnvConfig.ServerVMs | ForEach-Object -AsJob -ThrottleLimit 5 -Parallel {
+    $ServerJob = $Config.LabEnvConfig.ServerVMs | ForEach-Object -AsJob -ThrottleLimit 5 -Parallel {
         Import-Module $using:ModulePath -Force
         Write-Host "Creating New VM: $($_.VMName)" -ForegroundColor Cyan
         $ConfigSplat = @{
@@ -42,7 +42,22 @@ function New-LabEnv {
         New-LabVM @ConfigSplat | Out-Null
     }
 
-    $job | Wait-Job | Receive-Job
+    $ServerJob | Wait-Job | Receive-Job
+
+    $WorkstationJob = $Config.LabEnvConfig.WorkstationVMs | ForEach-Object -AsJob -ThrottleLimit 5 -Parallel {
+        Import-Module $using:ModulePath -Force
+        Write-Host "Creating New VM: $($_.VMName)" -ForegroundColor Cyan
+        $ConfigSplat = @{
+            VMConfig = $_ 
+            BaseConfig = $Using:Config.BaseConfig
+            LabEnvConfig = $Using:Config.LabEnvConfig
+        }
+
+        New-LabVM @ConfigSplat | Out-Null
+    }
+
+    $WorkstationJob | Wait-Job | Receive-Job
+
 
     foreach ($VM in $Config.LabEnvConfig.ServerVMs) {
         Write-Host "Installing Roles for: $($VM.VMName)" 
@@ -86,25 +101,6 @@ function New-LabEnv {
             }
         }
     }
-
-<#
-    foreach ($VM in $Script:WksVMs) {
-        $Script:VMConfig = @{}
-        ($VM[0]).psobject.properties | foreach-Object {$VMConfig[$_.Name] = $_.Value}
-        $VMConfig["WksVHDX"] = $Config.BaseConfig["WksVHDX"]
-        $VMConfig["VMIPAddress"] = "$($Config.LabEnvConfig["EnvIPSubnet"])$($script:VMConfig.VMIPLastOctet)"
-        $VMConfig["VMWinName"] = "$($script:VMConfig.VMName)"
-        $VMConfig["VMName"] = "$($Config.LabEnvConfig.Env)-$($script:VMConfig.VMName)"
-        $VMConfig["VMHDPath"] = "$($Config.BaseConfig.VMPath)\$($script:VMConfig.VMName)\Virtual Hard Disks"
-        $VMConfig["VMHDName"] = "$($script:VMConfig.VMName)c.vhdx"
-        $VMConfig["EnableSnapshot"] = if ($Script:VMConfig.EnableSnapshot -eq 1) {$true} else {$false}
-        $VMConfig["AutoStartup"] = if ($Script:VMConfig.AutoStartup -eq 1) {$true} else {$false}
-        $VMConfig["StartupMemory"] = [int64]$Script:VMConfig.StartupMemory.Replace('gb','') * 1GB
-
-        Write-Host $VM.VMName
-        New-LabVM
-    }
-#>
 
     Write-Host "New lab build Finished." -ForegroundColor Cyan
     (Get-date).DateTime

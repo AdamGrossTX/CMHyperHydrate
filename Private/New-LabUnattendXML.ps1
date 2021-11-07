@@ -63,13 +63,19 @@ $unattendTemplate = [xml]@"
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
     <settings pass="oobeSystem">
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <AutoLogon>
+                <Password>
+                    <Value>$($AdministratorPassword)</Value>
+                    <PlainText>True</PlainText>
+                </Password>
+                <Username>Administrator</Username>
+                <Enabled>true</Enabled>
+                <LogonCount>1</LogonCount>
+            </AutoLogon>
             <UserAccounts>
                 <AdministratorPassword>
                     <Value>$($AdministratorPassword)</Value>
                     <PlainText>True</PlainText>
-                    <Username>Administrator</Username>
-                    <Enabled>true</Enabled>
-                    <LogonCount>5</LogonCount>
                 </AdministratorPassword>
             </UserAccounts>
             <OOBE>

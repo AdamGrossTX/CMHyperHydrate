@@ -1,0 +1,3 @@
+- Add logic to build workstations without auto starting or unattending them
+- Add error handling to New-LabVM Job so that it exits if there's a problem
+

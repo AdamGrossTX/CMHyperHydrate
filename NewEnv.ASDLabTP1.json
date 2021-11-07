@@ -63,8 +63,8 @@
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
                     "ProcessorCount" : "1",
-                    "Generation"    : "2",
-                    "AutoStartup"   : "1"
+                    "AutoStartup"   : "1",
+                    "UseUnattend"   : "1"
                 },
                 {
                     "VMID"          : "VM2",
@@ -76,8 +76,8 @@
                     "EnableSnapShot": "1",
                     "StartupMemory" : "4gb",
                     "ProcessorCount" : "1",
-                    "Generation"    : "2",
-                    "AutoStartup"   : "1"
+                    "AutoStartup"   : "1",
+                    "UseUnattend"   : "1"
                 },
                 {
                     "VMID"          : "VM3",
@@ -93,12 +93,26 @@
                     "EnableSnapShot": "1",
                     "StartupMemory" : "16gb",
                     "ProcessorCount" : "4",
-                    "Generation"    : "2",
                     "AutoStartup"   : "1",
-                    "AddWSUS"       : "0"
+                    "AddWSUS"       : "0",
+                    "UseUnattend"   : "1"
                 }
 
+            ],
+            "WorkstationVMList": [
+                {
+                    "VMID"          : "WKS1",
+                    "VMName"        : "ASDLab-WKS01",
+                    "VMOS"          : "Workstation",
+                    "VMHDDSize"     : "25gb",
+                    "EnableSnapShot": "1",
+                    "StartupMemory" : "4gb",
+                    "ProcessorCount" : "2",
+                    "AutoStartup"   : "1",
+                    "UseUnattend"   : "0"
+                }
             ]
+            
         }
     ]
 }

@@ -33,7 +33,7 @@ function New-LabVM {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string]
-        $ReferenceVHDX = $BaseConfig.SvrVHDX,
+        $ReferenceVHDX = $VMConfig.VHDX,
     
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -64,10 +64,6 @@ function New-LabVM {
         [int]
         $ProcessorCount = $VMConfig.ProcessorCount,
     
-        [ValidateNotNullOrEmpty()]
-        [int]
-        $Generation = $VMConfig.Generation,
-    
         [Parameter()]
         [switch]
         $EnableSnapshot = $VMConfig.EnableSnapshot,
@@ -76,6 +72,10 @@ function New-LabVM {
         [switch]
         $StartUp = $VMConfig.AutoStartup,
     
+        [Parameter()]
+        [int]
+        $UseUnattend = $VMConfig.UseUnattend,
+
         [Parameter()]
         [string]
         $DomainName = $LabEnvConfig.EnvFQDN,
@@ -207,11 +207,21 @@ function New-LabVM {
         if (-not (Test-Path "$($VMHDPath)\$($VMHDName)" -ErrorAction SilentlyContinue)) {
             New-Item -Path $VMHDPath -ItemType Directory
             Copy-Item -Path $ReferenceVHDX -Destination "$($VMHDPath)\$($VMHDName)"
+            if($UseUnattend -eq 1) {
+                $UnattendPath = "$($BaseConfig.VMPath)\unattend.xml"
+                if($UnattendPath) {
+                    if(Test-Path -Path $UnattendPath) {
+                        $Disk = (Mount-VHD -Path "$($VMHDPath)\$($VMHDName)" -Passthru | Get-Disk | Get-Partition | Where-Object {$_.type -eq 'Basic'}).DriveLetter
+                        Copy-Item -Path $UnattendPath -Destination "$($Disk):\Unattend.XML" -ErrorAction Continue
+                        Dismount-VHD "$($VMHDPath)\$($VMHDName)"
+                    }
+                }
+            }
         }
 
         $VM = Get-VM -Name $VMName -ErrorAction SilentlyContinue
         if (-not $VM) {
-            $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation $Generation -Path $VMPath
+            $VM = New-VM -Name $VMName -MemoryStartupBytes $StartupMemory -VHDPath "$($VMHDPath)\$($VMHDName)" -Generation 2 -Path $VMPath
             if ($EnableSnapshot) {
                 Set-VM -VM $VM -checkpointtype Production -AutomaticCheckpointsEnabled $False
             }

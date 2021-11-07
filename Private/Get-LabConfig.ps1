@@ -69,17 +69,18 @@ function Get-LabConfig {
     $ServerVMs = $RawENVConfig.ServerVMList | ForEach-Object {
         $VMConfig = [PSCustomObject]@{}
         ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
-        $VMConfig | Add-Member -NotePropertyName "SvrVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMHDName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
-        $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "ProcessorCount" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "UseUnattend" -NotePropertyValue $Null -ErrorAction SilentlyContinue
 
-        $VMConfig.SvrVHDX = $BaseConfig.SvrVHDX
+        $VMConfig.VHDX = $BaseConfig.SvrVHDX
         $VMConfig.VMIPAddress = "$($LabEnvConfig.EnvIPSubnet)$($_.VMIPLastOctet)"
         $VMConfig.VMWinName = "$($_.VMName)"
         $VMConfig.VMName = "$($LabEnvConfig.Env)-$($_.VMName)"
@@ -87,17 +88,16 @@ function Get-LabConfig {
         $VMConfig.VMHDName = "$($VMConfig.VMName)c.vhdx"
         $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
         $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
+        $VMConfig.ProcessorCount = "$($_.ProcessorCount)"
         $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig.UseUnattend = "$($_.UseUnattend)"
         $VMConfig
     }
 
-    #TODO
-    <#
-    $WksVMs = $RawENVConfig.WorkstationVMList | ForEach-Object {
+    $WorkstationVMs = $RawENVConfig.WorkstationVMList | ForEach-Object {
         $VMConfig = [PSCustomObject]@{}
         ($_[0]).psobject.properties | foreach-Object {$VMConfig | Add-Member -NotePropertyName $_.Name -NotePropertyValue $_.Value -ErrorAction SilentlyContinue}
-        $VMConfig | Add-Member -NotePropertyName "WksVHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
-        $VMConfig | Add-Member -NotePropertyName "VMIPAddress" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "VHDX" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMWinName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMName" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "VMHDPath" -NotePropertyValue $Null -ErrorAction SilentlyContinue
@@ -105,20 +105,20 @@ function Get-LabConfig {
         $VMConfig | Add-Member -NotePropertyName "EnableSnapshot" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "AutoStartup" -NotePropertyValue $Null -ErrorAction SilentlyContinue
         $VMConfig | Add-Member -NotePropertyName "StartupMemory" -NotePropertyValue $Null -ErrorAction SilentlyContinue
+        $VMConfig | Add-Member -NotePropertyName "UseUnattend" -NotePropertyValue $Null -ErrorAction SilentlyContinue
 
-        $VMConfig.SvrVHDX = $BaseConfig.SvrVHDX
-        $VMConfig.VMIPAddress = "$($LabEnvConfig.EnvIPSubnet)$($_.VMIPLastOctet)"
+        $VMConfig.VHDX = $BaseConfig.WksVHDX
         $VMConfig.VMWinName = "$($_.VMName)"
         $VMConfig.VMName = "$($LabEnvConfig.Env)-$($_.VMName)"
-        $VMConfig.VMHDPath = "$($BaseConfig.VMPath)\$($_.VMName)\Virtual Hard Disks"
-        $VMConfig.VMHDName = "$($_.VMName)c.vhdx"
+        $VMConfig.VMHDPath = "$($BaseConfig.VMPath)\$($VMConfig.VMName)\Virtual Hard Disks"
+        $VMConfig.VMHDName = "$($VMConfig.VMName)c.vhdx"
         $VMConfig.EnableSnapshot = if ($_.EnableSnapshot -eq 1) {$true} else {$false}
         $VMConfig.AutoStartup = if ($_.AutoStartup -eq 1) {$true} else {$false}
         $VMConfig.StartupMemory = [int64]$_.StartupMemory.Replace('gb','') * 1GB
+        $VMConfig.UseUnattend = "$($_.UseUnattend)"
         $VMConfig
     }
-
-
+    <#TODO
     $VMs = Get-VM
     $VLans = foreach ($VM in $VMs) {
         $VM | Get-VMNetworkAdapterVlan | Select -ExpandProperty AccessVlanId
