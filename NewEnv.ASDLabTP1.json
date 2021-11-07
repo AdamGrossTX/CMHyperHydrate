@@ -4,7 +4,7 @@
     "SourcePath"        : "C:\\Labs",
     "PathSQL"           : "\\Media\\ISO\\SQL",
     "PathSvr"           : "\\Media\\ISO\\Server",
-    "PathWin10"         : "\\Media\\ISO\\Windows10",
+    "PathWks"           : "\\Media\\ISO\\Windows11",
     "PathADK"           : "\\Media\\ADK",
     "PathADKWinPE"      : "\\Media\\ADKWinPE",
     "PathConfigMgrTP"   : "\\Media\\ConfigMgrTP",
@@ -17,13 +17,21 @@
     "VMScriptPath"      : "\\Data\\Scripts",
     "ServerRef"         : [
         {
-            "RefID"         : "2019",
             "RefName"       : "Windows Server 2019",
             "RefVHDXName"   : "Server2019Ref.vhdx",
             "RefIndex"      : "2",
             "RefSrcType"    : "ISO",
             "RefHVDSize"    : "25gb",
             "RefFeature"   : "NetFx3"
+        }
+    ],
+    "WorkstationRef"         : [
+        {
+            "RefName"       : "Windows 11",
+            "RefVHDXName"   : "Windows11Ref.vhdx",
+            "RefIndex"      : "Windows 11 Pro",
+            "RefSrcType"    : "ISO",
+            "RefHVDSize"    : "25gb"
         }
     ],
     "ENVConfig"         : [

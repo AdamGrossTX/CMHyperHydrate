@@ -20,7 +20,7 @@ function New-LabEnv {
         New-LabUnattendXML -BaseConfig $Config.BaseConfig -LabEnvConfig $Config.LabEnvConfig
         $Config.BaseConfig.SvrVHDX = New-LabRefVHDX -BuildType Server -BaseConfig $Config.BaseConfig
     }
-    if ($Config.BaseConfig.WorkstationRef.RefVHDXName -and -not $Base.WksVHDX) {
+    if ($Config.BaseConfig.WorkstationRef.RefVHDXName -and -not $Config.BaseConfig.WksVHDX) {
         New-LabUnattendXML -BaseConfig $Config.BaseConfig -LabEnvConfig $Config.LabEnvConfig
         $Config.BaseConfig.WksVHDX = New-LabRefVHDX -BuildType Workstation -BaseConfig $Config.BaseConfig
     }
@@ -111,6 +111,7 @@ function New-LabEnv {
 
 }
 catch {
+    throw $_
 
 }
 finally {

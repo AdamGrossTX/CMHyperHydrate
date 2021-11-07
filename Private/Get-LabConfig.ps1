@@ -52,7 +52,7 @@ function Get-LabConfig {
     $BaseConfig["VMPath"] = Join-Path -Path $BaseConfig.LabPath -ChildPath $BaseConfig.ENVToBuild
     $BaseConfig["SQLISO"] = Get-ChildItem -Path $BaseConfig.PathSQL -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $BaseConfig["SvrISO"] = Get-ChildItem -Path $BaseConfig.PathSvr -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
-    $BaseConfig["WinISO"] = Get-ChildItem -Path $BaseConfig.PathWin10 -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
+    $BaseConfig["WksISO"] = Get-ChildItem -Path $BaseConfig.PathWks -Filter "*.ISO" | Select-Object -First 1 -ExpandProperty FullName
     $BaseConfig["Packages"] = Get-ChildItem -Path $BaseConfig.PathPackages -Filter "*.CAB" | Select-Object -ExpandProperty FullName
     $BaseConfig["Drivers"] = Get-ChildItem -Path $BaseConfig.PathDrivers -Filter "*.*" | Select-Object -ExpandProperty FullName
     $BaseConfig["SvrVHDX"] = Get-ChildItem -Path $BaseConfig.PathRefImage | Where-Object {$_.Name -eq $ServerRefConfig.RefVHDXName} |  Select-Object -ExpandProperty FullName

@@ -10,7 +10,7 @@ function New-LabRefVHDX {
         [ValidateNotNullOrEmpty()]
         [ValidateSet("Server","Workstation")]
         [string]
-        $BuildType="Server"
+        $BuildType
 
     )
 
@@ -29,9 +29,6 @@ function New-LabRefVHDX {
                 VhdPath      = Join-Path -Path $BaseConfig.PathRefImage -ChildPath $BaseConfig.ServerRef.RefVHDXName
                 SizeBytes    = [uint64]($BaseConfig.ServerRef.RefHVDSize/1)
                 UnattendPath = Join-Path -Path $BaseConfig.VMPath -ChildPath "Unattend.xml"
-                VhdType      = "Dynamic"
-                VhdFormat    = "VHDX"
-                DiskLayout   = "UEFI"
                 Feature = if (-not ([string]::IsNullOrEmpty($BaseConfig.ServerRef.RefFeature))) {$BaseConfig.ServerRef.RefFeature} else {$null}
             }
         }
@@ -44,12 +41,9 @@ function New-LabRefVHDX {
                                     default {$BaseConfig.WksISO;break;}
                                 }
                 Edition      = $BaseConfig.WorkstationRef.RefIndex
-                VhdPath      =  Join-Path -Path $BaseConfig.PathRefImage -ChildPath $BaseConfig.ServerRef.RefVHDXName
+                VhdPath      =  Join-Path -Path $BaseConfig.PathRefImage -ChildPath $BaseConfig.WorkstationRef.RefVHDXName
                 SizeBytes    = [uint64]($BaseConfig.WorkstationRef.RefHVDSize/1)
                 UnattendPath = Join-Path -Path $BaseConfig.VMPath -ChildPath "Unattend.xml"
-                VhdType      = "Dynamic"
-                VhdFormat    = "VHDX"
-                DiskLayout   = "UEFI"
                 Feature = if (-not ([string]::IsNullOrEmpty($BaseConfig.WorkstationRef.RefFeature))) {$BaseConfig.WorkstationRef.RefFeature} else {$null}
             }
         }
@@ -57,19 +51,7 @@ function New-LabRefVHDX {
     }
 
     if (-not (Test-Path -Path $params.VhdPath -ErrorAction SilentlyContinue)) {
-        $module = Get-Module -ListAvailable -Name 'Hyper-ConvertImage'
-        if ($module.count -lt 1) {
-            Install-Module -Name 'Hyper-ConvertImage'
-            $module = Get-Module -ListAvailable -Name 'Hyper-ConvertImage'
-        }
-        #Hyper-ConvertImage doesn't play nice with PowerShell 7 so we need to force it to use Powershell 5 with the -UseWindowsPowerShell parameter
-        if ($PSVersionTable.PSVersion.Major -eq 7) {
-            Import-Module -Name (Split-Path $module.ModuleBase -Parent) -UseWindowsPowerShell -ErrorAction SilentlyContinue 3>$null
-        }
-        else {
-            Import-Module -Name 'Hyper-ConvertImage'
-        }
-        Convert-WindowsImage @Params
+        Convert-LabISOToVHDX @Params
     }
 
     if(Test-Path $params.VhdPath) {
@@ -80,4 +62,3 @@ function New-LabRefVHDX {
         Throw "Failed to create VHDX."
     }
 }
-
